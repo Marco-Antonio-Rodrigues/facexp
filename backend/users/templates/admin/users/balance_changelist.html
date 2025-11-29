@@ -1,0 +1,54 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+/* Estilo para action quando nenhum item está selecionado */
+#changelist-form .actions select option[value="add_manual_credit"] {
+    color: #999;
+}
+
+/* JavaScript vai adicionar classe quando tiver seleção */
+.has-selection #changelist-form .actions select option[value="add_manual_credit"] {
+    color: #000;
+    font-weight: bold;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('changelist-form');
+    const actionSelect = document.querySelector('.actions select[name="action"]');
+    const checkboxes = document.querySelectorAll('input[name="_selected_action"]');
+    
+    function updateActionStyle() {
+        const hasSelection = Array.from(checkboxes).some(cb => cb.checked);
+        if (hasSelection) {
+            form.classList.add('has-selection');
+        } else {
+            form.classList.remove('has-selection');
+        }
+    }
+    
+    // Atualiza ao marcar/desmarcar
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateActionStyle);
+    });
+    
+    // Atualiza ao carregar
+    updateActionStyle();
+    
+    // Impede submissão se nenhum selecionado e action é add_manual_credit
+    form.addEventListener('submit', function(e) {
+        const selectedAction = actionSelect.value;
+        const hasSelection = Array.from(checkboxes).some(cb => cb.checked);
+        
+        if (selectedAction === 'add_manual_credit' && !hasSelection) {
+            e.preventDefault();
+            alert('Selecione pelo menos um usuário para adicionar crédito.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

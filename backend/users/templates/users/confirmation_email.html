@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Email</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header, .footer {
+            background-color: #EB5757;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #EB5757;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .a{
+            color:#f4f4f9;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cardap.IO</h1>
+        </div>
+        <div class="content">
+            <p>Olá,</p>
+            <p>Por favor confirme seu endereço de e-mail clicando no botão abaixo.</p>
+            <a href="{{ confirmation_url }}" class="button">Confirmar Email</a>
+        </div>
+        <div class="footer">
+            Se você não solicitou este email, por favor ignore-o.
+        </div>
+    </div>
+</body>
+</html>
