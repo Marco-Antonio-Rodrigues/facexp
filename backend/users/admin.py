@@ -51,7 +51,7 @@ class CustomUserAdmin(UserAdmin):
         "is_active",
     )
     fieldsets = (
-        (None, {"fields": ("email", "name", "phone_number", "date_birth", "email_confirmed")}),
+        (None, {"fields": ("email", "name", "email_confirmed")}),
         (
             "Permissions",
             {"fields": ("is_staff", "is_active")},

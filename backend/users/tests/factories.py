@@ -12,8 +12,6 @@ class CustomUserFactory(factory.django.DjangoModelFactory):
 
     email = factory.Faker("email")
     name = factory.Faker("name")
-    phone_number = factory.Faker("phone_number")
-    date_birth = factory.Faker("date_of_birth")
     email_confirmed = False
     confirmation_token = factory.LazyFunction(uuid.uuid4)
     confirmation_token_created_at = factory.LazyFunction(timezone.now)

@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ["name", "email", "date_birth", "phone_number", "balance"]
+        fields = ["name", "email", "balance"]
     
     def get_balance(self, obj):
         """Retorna o saldo do usuário"""
@@ -38,12 +38,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         raise serializers.ValidationError("O email não pode ser alterado.")
-
-    def validate_date_birth(self, value):
-        if value >= timezone.now().date():
-            raise serializers.ValidationError("A data de nascimento não pode ser maior que a data de hoje.")
-        return value
-
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()

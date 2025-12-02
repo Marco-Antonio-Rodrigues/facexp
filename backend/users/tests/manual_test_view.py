@@ -16,7 +16,6 @@ class RealEmailUserTest(TestCase):
             "email": self.email,
             "password": "@Kr3of1sj40",
             "name": "Diego Caio Nelson Dias",
-            "date_birth": "24/05/1970",
         }
 
         # views that send email

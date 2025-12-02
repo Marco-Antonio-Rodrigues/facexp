@@ -171,8 +171,6 @@ class UserTests(APITestCase):
             self.user_url,
             {
                 "name": "Leonardo",
-                "date_birth": "24/05/2000",
-                "phone_number": "(31) 9 7121-0575",
                 "address": {
                     "street": "lá na esquina",
                     "number": "731",
@@ -201,8 +199,6 @@ class UserTests(APITestCase):
                 "name": "",
                 "atributo_que_nao_existe": "nao_existo",
                 "email": "teste@.",
-                "date_birth": "24/05/2050",
-                "phone_number": "(00) 0 7121-0575",
                 "address": {"state": "M", "complement": "Teste", "zip_code": "30520"},
             },
             headers={"Authorization": f"Bearer {tokens['access']}"},
@@ -219,8 +215,6 @@ class UserTests(APITestCase):
             self.user_url,
             {
                 "name": "Leonardo",
-                "date_birth": "24/05/2000",
-                "phone_number": "(31) 9 7121-0575",
                 "address": {
                     "street": "lá na esquina",
                     "number": "731",
@@ -295,51 +289,4 @@ class UserTests(APITestCase):
             response_update.status_code,
             status.HTTP_200_OK,
             "Erro ao atualizar com o nome válido",
-        )
-
-    def test_update_user_with_invalid_birth_date(self):
-        tokens = self.prepare_login(self.user)
-
-        # Data de nascimento inválida
-        response_update = self.client.patch(
-            self.user_url,
-            {"date_birth": "30/02/2050"},
-            headers={"Authorization": f"Bearer {tokens['access']}"},
-            format="json",
-        )
-        self.assertNotEqual(
-            response_update.status_code,
-            status.HTTP_200_OK,
-            "O sistema aceitou uma data de nascimento inválida e que não existe.",
-        )
-
-        # Data de nascimento no futuro inválida
-        response_update = self.client.patch(
-            self.user_url,
-            {"date_birth": "02/09/2054"},
-            headers={"Authorization": f"Bearer {tokens['access']}"},
-            format="json",
-        )
-        self.assertNotEqual(
-            response_update.status_code,
-            status.HTTP_200_OK,
-            "O sistema aceitou uma data de nascimento inválida.",
-        )
-
-    def test_update_user_with_valid_birth_date(self):
-        tokens = self.prepare_login(self.user)
-
-        # Data de nascimento válida
-        response_update = self.client.patch(
-            self.user_url,
-            {"date_birth": "24/05/2000"},  # Data de nascimento válida
-            headers={"Authorization": f"Bearer {tokens['access']}"},
-            format="json",
-        )
-        if response_update.status_code != 200:
-            logging.debug(f'\ntest_update_user_with_valid_birth_date: {response_update.content.decode("utf-8")}\n')
-        self.assertEqual(
-            response_update.status_code,
-            status.HTTP_200_OK,
-            "Erro ao atualizar a data de nascimento válida",
         )

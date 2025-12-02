@@ -60,6 +60,7 @@ class ConfigBase:
         # our apps
         "core",
         "users",
+        "experiments",
     ]
 
     MIDDLEWARE = [

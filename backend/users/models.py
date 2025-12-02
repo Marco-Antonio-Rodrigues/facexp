@@ -11,8 +11,6 @@ from .managers import CustomUserManager
 class CustomUser(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
     name = models.CharField(_("name"), max_length=50)
-    phone_number = models.CharField(_("phone_number"), max_length=20, null=True)
-    date_birth = models.DateField(_("date birth"), null=True)
     email_confirmed = models.BooleanField(default=False)
     confirmation_token = models.UUIDField(default=uuid.uuid4, editable=False, null=True, blank=True)
     confirmation_token_created_at = models.DateTimeField(default=timezone.now)
