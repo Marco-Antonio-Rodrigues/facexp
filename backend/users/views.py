@@ -26,12 +26,11 @@ from users.serializers import (
     LoginWithCodeSerializer,
     RequestLoginCodeSerializer,
     ResendConfirmEmailSerializer,
-    UserAddressSerializer,
     UserRegisterSerializer,
     UserSerializer,
 )
 
-from .models import CustomUser, UserAddress
+from .models import CustomUser
 from .utils import send_email_confirmation
 
 
@@ -76,23 +75,6 @@ class UserView(APIView):
 
             if not user_serializer.is_valid():
                 return Response({"message": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-            if request.data.get("address"):
-                address_data = request.data.pop("address", {})
-                try:
-                    user_address = UserAddress.objects.get(user=user.id)
-                    address_serializer = UserAddressSerializer(user_address, data=address_data, partial=True)
-                except UserAddress.DoesNotExist:
-                    address_data["user"] = user.id
-                    address_serializer = UserAddressSerializer(data=address_data)
-
-                if not address_serializer.is_valid():
-                    return Response({"message": address_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-                try:
-                    address_serializer.save()
-                except ValidationError as e:
-                    transaction.set_rollback(True)
-                    return Response({"message": e.detail}, status=status.HTTP_400_BAD_REQUEST)
 
             user_serializer.save()
         return Response(user_serializer.data)

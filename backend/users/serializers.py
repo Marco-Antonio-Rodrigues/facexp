@@ -2,31 +2,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 
-from core.validators import validate_zip_code
-
-from .models import CustomUser, UserAddress
-
-
-class GetUserAddressSerializer(serializers.ModelSerializer):
-    """Class for getting user addresse"""
-
-    class Meta:
-        model = UserAddress
-        exclude = ("id", "user")
-
-
-class UserAddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserAddress
-        exclude = ("id",)
-
-    def update(self, instance, validated_data):
-        if validated_data.get("user"):
-            raise serializers.ValidationError("Você não pode alterar user.")
-        return super().update(instance, validated_data)
-
-    def validate_zip_code(self, value):
-        return validate_zip_code(value)
+from .models import CustomUser
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -47,12 +23,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    address = GetUserAddressSerializer(read_only=True)
     balance = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
-        fields = ["name", "email", "date_birth", "phone_number", "address", "balance"]
+        fields = ["name", "email", "date_birth", "phone_number", "balance"]
     
     def get_balance(self, obj):
         """Retorna o saldo do usuário"""

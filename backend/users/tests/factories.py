@@ -3,7 +3,7 @@ import uuid
 import factory
 from django.utils import timezone
 
-from users.models import CustomUser, UserAddress
+from users.models import CustomUser
 
 
 class CustomUserFactory(factory.django.DjangoModelFactory):
@@ -19,22 +19,3 @@ class CustomUserFactory(factory.django.DjangoModelFactory):
     confirmation_token_created_at = factory.LazyFunction(timezone.now)
 
     password = factory.PostGenerationMethodCall("set_password", "@Kr3of1sj40")
-
-    @factory.post_generation
-    def address(self, create, extracted, **kwargs):
-        if create and extracted:
-            UserAddressFactory(user=self)
-
-
-class UserAddressFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = UserAddress
-
-    user = factory.SubFactory(CustomUserFactory)
-    street = factory.Faker("street_name")
-    number = factory.Faker("building_number")
-    neighborhood = factory.Faker("city")
-    city = factory.Faker("city")
-    state = factory.Faker("state_abbr")
-    complement = factory.Faker("secondary_address")
-    zip_code = factory.Faker("postcode")
