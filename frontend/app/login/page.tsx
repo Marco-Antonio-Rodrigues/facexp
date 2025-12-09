@@ -80,7 +80,7 @@ export default function LoginPage() {
 
     try {
       await login(email, code);
-      router.push('/dashboard');
+      router.push('/experiments');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {
@@ -104,13 +104,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle className="text-center">
+          {/* Brand */}
+          <div className="text-center mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Facexp
+            </h1>
+            <p className="text-xs font-mono text-muted-foreground mt-1">
+              Design of Experiments Platform
+            </p>
+          </div>
+          
+          <CardTitle className="text-center text-xl">
             {step === 'email' ? 'Bem-vindo de volta!' : 'Digite o código'}
           </CardTitle>
-          <p className="text-gray-600 text-center mt-2">
+          <p className="text-muted-foreground text-center mt-2 text-sm">
             {step === 'email' 
               ? 'Entre com seu e-mail para receber o código de acesso'
               : 'Enviamos um código de 6 dígitos para seu e-mail'}
@@ -119,12 +129,12 @@ export default function LoginPage() {
 
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-destructive text-sm">{error}</p>
               {needsEmailConfirmation && (
                 <button
                   onClick={handleResendConfirmation}
-                  className="mt-2 text-sm text-blue-600 hover:text-blue-700 underline font-medium"
+                  className="mt-2 text-sm text-primary hover:text-primary/80 underline font-medium"
                   disabled={isLoading}
                 >
                   Reenviar e-mail de confirmação
@@ -134,8 +144,8 @@ export default function LoginPage() {
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-600 text-sm">{success}</p>
+            <div className="mb-4 p-3 bg-success/10 border border-success/20 rounded-lg">
+              <p className="text-success text-sm">{success}</p>
             </div>
           )}
 
@@ -153,7 +163,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 isLoading={isLoading}
               >
                 Enviar código
@@ -172,14 +182,14 @@ export default function LoginPage() {
                   autoFocus
                   maxLength={6}
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Enviado para: {email}
                 </p>
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 isLoading={isLoading}
                 disabled={code.length !== 6}
               >
@@ -190,7 +200,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
                   disabled={isLoading}
                 >
                   Reenviar código
@@ -203,7 +213,7 @@ export default function LoginPage() {
                     setError('');
                     setSuccess('');
                   }}
-                  className="text-sm text-gray-600 hover:text-gray-700 transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Usar outro e-mail
                 </button>
@@ -212,9 +222,9 @@ export default function LoginPage() {
           )}
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Não tem uma conta?{' '}
-              <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/register" className="text-primary hover:text-primary/80 font-medium transition-colors">
                 Cadastre-se
               </Link>
             </p>

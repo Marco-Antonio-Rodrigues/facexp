@@ -51,25 +51,29 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
+        <Card className="w-full max-w-md border-primary/20 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-center text-green-600">
-              Conta criada com sucesso! 🎉
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="text-4xl">🧪</div>
+              <h1 className="text-2xl font-bold text-primary">Facexp</h1>
+            </div>
+            <CardTitle className="text-center text-success">
+              Conta criada com sucesso!
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-700">
+            <div className="p-4 bg-success/10 border border-success/30 rounded-lg">
+              <p className="text-success font-medium">
                 Enviamos um e-mail de confirmação para <strong>{formData.email}</strong>
               </p>
-              <p className="text-sm text-green-600 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.
               </p>
             </div>
             <Button
               onClick={() => router.push('/login')}
-              className="w-full"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Ir para login
             </Button>
@@ -80,19 +84,26 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4 py-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4 py-8">
+      <Card className="w-full max-w-md border-primary/20 shadow-lg">
         <CardHeader>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="text-4xl">🧪</div>
+            <h1 className="text-2xl font-bold text-primary">Facexp</h1>
+            <span className="ml-2 px-2 py-0.5 bg-science-500/10 text-science-700 text-xs font-mono rounded border border-science-500/20">
+              DOE
+            </span>
+          </div>
           <CardTitle className="text-center">Criar conta</CardTitle>
-          <p className="text-gray-600 text-center mt-2">
+          <p className="text-muted-foreground text-center mt-2">
             Preencha seus dados para começar
           </p>
         </CardHeader>
 
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm">{error}</p>
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <p className="text-destructive text-sm font-medium">{error}</p>
             </div>
           )}
 
@@ -120,7 +131,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               isLoading={isLoading}
             >
               Criar conta
@@ -128,9 +139,9 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Já tem uma conta?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
                 Faça login
               </Link>
             </p>

@@ -16,6 +16,7 @@ pillow = "^10.4.0"
 requests = "^2.32.5"
 django-cors-headers = "^4.3.1"
 drf-spectacular = "^0.29.0"
+drf-nested-routers = "^0.95.0"
 
 [tool.poetry.group.dev.dependencies]
 factory-boy = "^3.3.1"

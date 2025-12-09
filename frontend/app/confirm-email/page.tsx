@@ -47,36 +47,40 @@ export default function ConfirmEmailPage() {
   }, [token, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
+      <Card className="w-full max-w-md border-primary/20 shadow-lg">
         <CardHeader>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="text-4xl">🧪</div>
+            <h1 className="text-2xl font-bold text-primary">Facexp</h1>
+          </div>
           <CardTitle className="text-center">
             {status === 'loading' && 'Confirmando e-mail...'}
-            {status === 'success' && 'E-mail confirmado! ✅'}
-            {status === 'error' && 'Erro na confirmação ❌'}
+            {status === 'success' && 'E-mail confirmado!'}
+            {status === 'error' && 'Erro na confirmação'}
           </CardTitle>
         </CardHeader>
 
         <CardContent className="text-center space-y-4">
           {status === 'loading' && (
             <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="text-gray-600">Aguarde enquanto confirmamos seu e-mail...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <p className="text-muted-foreground">Aguarde enquanto confirmamos seu e-mail...</p>
             </div>
           )}
 
           {status === 'success' && (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="p-4 bg-success/10 border border-success/30 rounded-lg">
                 <div className="text-5xl mb-4">🎉</div>
-                <p className="text-green-700 font-medium">{message}</p>
+                <p className="text-success font-medium">{message}</p>
               </div>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Agora você pode fazer login na plataforma!
               </p>
               <Button
                 onClick={() => router.push('/login')}
-                className="w-full"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Fazer login
               </Button>
@@ -85,16 +89,16 @@ export default function ConfirmEmailPage() {
 
           {status === 'error' && (
             <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700">{message}</p>
+              <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+                <p className="text-destructive font-medium">{message}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   O link pode ter expirado ou já foi usado.
                 </p>
                 <Link
                   href="/login"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-primary hover:text-primary/80 font-medium transition-colors"
                 >
                   Voltar para login
                 </Link>

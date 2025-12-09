@@ -20,6 +20,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from drf_spectacular.utils import extend_schema
 
 from users.serializers import (
     LoginSerializer,
@@ -34,6 +35,7 @@ from .models import CustomUser
 from .utils import send_email_confirmation
 
 
+@extend_schema(tags=['Auth'])
 class UserView(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
@@ -80,6 +82,7 @@ class UserView(APIView):
         return Response(user_serializer.data)
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def login(request: Request):
     """Login apenas para superusers (admins) com email e senha"""
@@ -120,6 +123,7 @@ def login(request: Request):
         return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def request_login_code(request: Request):
     """Solicita código de login via email (para usuários normais)"""
@@ -168,6 +172,7 @@ def request_login_code(request: Request):
         return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def login_with_code(request: Request):
     """Faz login usando código recebido por email"""
@@ -207,6 +212,7 @@ def login_with_code(request: Request):
         return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request: Request):
@@ -230,6 +236,7 @@ def logout(request: Request):
     )
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def resend_confirmation_email(request: Request):
     serializer = ResendConfirmEmailSerializer(data=request.data)
@@ -261,6 +268,7 @@ def resend_confirmation_email(request: Request):
         return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def confirm_email(request: Request):
     """Confirma email do usuário e ativa a conta automaticamente"""
@@ -283,6 +291,7 @@ def confirm_email(request: Request):
         )
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def password_reset_request(request: Request):
     email = request.data.get("email")
@@ -314,6 +323,7 @@ def password_reset_request(request: Request):
     return Response({"message": "Email de redefinição de senha enviado."}, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=['Auth'])
 @api_view(["POST"])
 def password_reset_confirm(request: Request):
     uid = request.data.get("uid")

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Consulta de Placas - Infinite Pay",
-  description: "Sistema de consulta de placas de veículos",
+  title: "Facexp - Design of Experiments",
+  description: "Plataforma profissional para planejamento e análise de experimentos fatoriais (DOE)",
 };
 
 export default function RootLayout({

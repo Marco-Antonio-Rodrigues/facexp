@@ -1,0 +1,2239 @@
+openapi: 3.0.3
+info:
+  title: My API
+  version: 1.0.0
+  description: Documentação automática da API
+paths:
+  /:
+    get:
+      operationId: root_retrieve
+      description: Lista todos os endpoints e recursos disponíveis no sistema.
+      summary: Navegação da API (Root)
+      tags:
+      - Core
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/experiments/:
+    get:
+      operationId: api_experiments_list
+      description: |-
+        ViewSet para CRUD completo de Experiments.
+
+        list: Lista todos os experimentos do usuário autenticado
+        retrieve: Retorna detalhes de um experimento específico
+        create: Cria um novo experimento
+        update: Atualiza completamente um experimento
+        partial_update: Atualiza parcialmente um experimento
+        destroy: Remove um experimento
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExperimentList'
+          description: ''
+    post:
+      operationId: api_experiments_create
+      description: |-
+        ViewSet para CRUD completo de Experiments.
+
+        list: Lista todos os experimentos do usuário autenticado
+        retrieve: Retorna detalhes de um experimento específico
+        create: Cria um novo experimento
+        update: Atualiza completamente um experimento
+        partial_update: Atualiza parcialmente um experimento
+        destroy: Remove um experimento
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentCreate'
+          description: ''
+  /api/experiments/{experiment_slug}/factors/:
+    get:
+      operationId: api_experiments_factors_list
+      description: |-
+        ViewSet para CRUD completo de Factors.
+
+        Fatores são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FactorList'
+          description: ''
+    post:
+      operationId: api_experiments_factors_create
+      description: |-
+        ViewSet para CRUD completo de Factors.
+
+        Fatores são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactorCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FactorCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FactorCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorCreate'
+          description: ''
+  /api/experiments/{experiment_slug}/factors/{id}/:
+    get:
+      operationId: api_experiments_factors_retrieve
+      description: |-
+        ViewSet para CRUD completo de Factors.
+
+        Fatores são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorDetail'
+          description: ''
+    put:
+      operationId: api_experiments_factors_update
+      description: |-
+        ViewSet para CRUD completo de Factors.
+
+        Fatores são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactorUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FactorUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FactorUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorUpdate'
+          description: ''
+    patch:
+      operationId: api_experiments_factors_partial_update
+      description: |-
+        ViewSet para CRUD completo de Factors.
+
+        Fatores são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFactorUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFactorUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFactorUpdate'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorUpdate'
+          description: ''
+    delete:
+      operationId: api_experiments_factors_destroy
+      description: |-
+        ViewSet para CRUD completo de Factors.
+
+        Fatores são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/experiments/{experiment_slug}/factors/{id}/duplicate/:
+    post:
+      operationId: api_experiments_factors_duplicate_create
+      description: Duplica um fator dentro do mesmo experimento.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactorDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FactorDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FactorDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/factors/bulk_create/:
+    post:
+      operationId: api_experiments_factors_bulk_create_create
+      description: |-
+        Cria múltiplos fatores de uma vez.
+        Espera uma lista de fatores no body.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactorDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FactorDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FactorDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/response-variables/:
+    get:
+      operationId: api_experiments_response_variables_list
+      description: |-
+        ViewSet para CRUD completo de Response Variables.
+
+        Variáveis de resposta são sempre associadas a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseVariableList'
+          description: ''
+    post:
+      operationId: api_experiments_response_variables_create
+      description: |-
+        ViewSet para CRUD completo de Response Variables.
+
+        Variáveis de resposta são sempre associadas a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVariableCreate'
+          description: ''
+  /api/experiments/{experiment_slug}/response-variables/{id}/:
+    get:
+      operationId: api_experiments_response_variables_retrieve
+      description: |-
+        ViewSet para CRUD completo de Response Variables.
+
+        Variáveis de resposta são sempre associadas a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVariableDetail'
+          description: ''
+    put:
+      operationId: api_experiments_response_variables_update
+      description: |-
+        ViewSet para CRUD completo de Response Variables.
+
+        Variáveis de resposta são sempre associadas a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVariableUpdate'
+          description: ''
+    patch:
+      operationId: api_experiments_response_variables_partial_update
+      description: |-
+        ViewSet para CRUD completo de Response Variables.
+
+        Variáveis de resposta são sempre associadas a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedResponseVariableUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedResponseVariableUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedResponseVariableUpdate'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVariableUpdate'
+          description: ''
+    delete:
+      operationId: api_experiments_response_variables_destroy
+      description: |-
+        ViewSet para CRUD completo de Response Variables.
+
+        Variáveis de resposta são sempre associadas a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/experiments/{experiment_slug}/response-variables/{id}/duplicate/:
+    post:
+      operationId: api_experiments_response_variables_duplicate_create
+      description: Duplica uma variável de resposta dentro do mesmo experimento.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVariableDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/response-variables/bulk_create/:
+    post:
+      operationId: api_experiments_response_variables_bulk_create_create
+      description: |-
+        Cria múltiplas variáveis de resposta de uma vez.
+        Espera uma lista de variáveis no body.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResponseVariableDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVariableDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/:
+    get:
+      operationId: api_experiments_runs_list
+      description: |-
+        ViewSet para CRUD completo de Experiment Runs.
+
+        Runs são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExperimentRunList'
+          description: ''
+    post:
+      operationId: api_experiments_runs_create
+      description: |-
+        ViewSet para CRUD completo de Experiment Runs.
+
+        Runs são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunCreate'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/{id}/:
+    get:
+      operationId: api_experiments_runs_retrieve
+      description: |-
+        ViewSet para CRUD completo de Experiment Runs.
+
+        Runs são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+    put:
+      operationId: api_experiments_runs_update
+      description: |-
+        ViewSet para CRUD completo de Experiment Runs.
+
+        Runs são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunUpdate'
+          description: ''
+    patch:
+      operationId: api_experiments_runs_partial_update
+      description: |-
+        ViewSet para CRUD completo de Experiment Runs.
+
+        Runs são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunUpdate'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunUpdate'
+          description: ''
+    delete:
+      operationId: api_experiments_runs_destroy
+      description: |-
+        ViewSet para CRUD completo de Experiment Runs.
+
+        Runs são sempre associados a um experimento específico.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/experiments/{experiment_slug}/runs/{id}/toggle_exclude/:
+    post:
+      operationId: api_experiments_runs_toggle_exclude_create
+      description: Alterna o status de exclusão do run.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/{id}/update_responses/:
+    patch:
+      operationId: api_experiments_runs_update_responses_partial_update
+      description: Atualiza apenas os valores de resposta de um run.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunDetail'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/bulk_create/:
+    post:
+      operationId: api_experiments_runs_bulk_create_create
+      description: |-
+        Cria múltiplos runs de uma vez.
+        Espera uma lista de runs no body.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentRunDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/bulk_update_responses/:
+    patch:
+      operationId: api_experiments_runs_bulk_update_responses_partial_update
+      description: |-
+        Atualiza valores de resposta de múltiplos runs de uma vez.
+        Espera uma lista no formato: [{"id": 1, "response_values": {...}}, ...]
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentRunDetail'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/excluded/:
+    get:
+      operationId: api_experiments_runs_excluded_retrieve
+      description: Lista apenas runs excluídos.
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+  /api/experiments/{experiment_slug}/runs/incomplete/:
+    get:
+      operationId: api_experiments_runs_incomplete_retrieve
+      description: Lista apenas runs incompletos (sem todas as respostas preenchidas).
+      parameters:
+      - in: path
+        name: experiment_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentRunDetail'
+          description: ''
+  /api/experiments/{slug}/:
+    get:
+      operationId: api_experiments_retrieve
+      description: |-
+        ViewSet para CRUD completo de Experiments.
+
+        list: Lista todos os experimentos do usuário autenticado
+        retrieve: Retorna detalhes de um experimento específico
+        create: Cria um novo experimento
+        update: Atualiza completamente um experimento
+        partial_update: Atualiza parcialmente um experimento
+        destroy: Remove um experimento
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDetail'
+          description: ''
+    put:
+      operationId: api_experiments_update
+      description: |-
+        ViewSet para CRUD completo de Experiments.
+
+        list: Lista todos os experimentos do usuário autenticado
+        retrieve: Retorna detalhes de um experimento específico
+        create: Cria um novo experimento
+        update: Atualiza completamente um experimento
+        partial_update: Atualiza parcialmente um experimento
+        destroy: Remove um experimento
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentUpdate'
+          description: ''
+    patch:
+      operationId: api_experiments_partial_update
+      description: |-
+        ViewSet para CRUD completo de Experiments.
+
+        list: Lista todos os experimentos do usuário autenticado
+        retrieve: Retorna detalhes de um experimento específico
+        create: Cria um novo experimento
+        update: Atualiza completamente um experimento
+        partial_update: Atualiza parcialmente um experimento
+        destroy: Remove um experimento
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExperimentUpdate'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentUpdate'
+          description: ''
+    delete:
+      operationId: api_experiments_destroy
+      description: |-
+        ViewSet para CRUD completo de Experiments.
+
+        list: Lista todos os experimentos do usuário autenticado
+        retrieve: Retorna detalhes de um experimento específico
+        create: Cria um novo experimento
+        update: Atualiza completamente um experimento
+        partial_update: Atualiza parcialmente um experimento
+        destroy: Remove um experimento
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/experiments/{slug}/archive/:
+    post:
+      operationId: api_experiments_archive_create
+      description: Arquiva um experimento (muda status para archived).
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDetail'
+          description: ''
+  /api/experiments/{slug}/duplicate/:
+    post:
+      operationId: api_experiments_duplicate_create
+      description: Duplica um experimento existente.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDetail'
+          description: ''
+  /api/experiments/{slug}/generate_runs/:
+    post:
+      operationId: api_experiments_generate_runs_create
+      description: Gera as corridas experimentais baseado nos fatores cadastrados.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Experiments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExperimentDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDetail'
+          description: ''
+  /api/experiments/by_status/:
+    get:
+      operationId: api_experiments_by_status_retrieve
+      description: Filtra experimentos por status.
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDetail'
+          description: ''
+  /api/experiments/search/:
+    get:
+      operationId: api_experiments_search_retrieve
+      description: Busca experimentos por título ou descrição.
+      tags:
+      - Experiments
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDetail'
+          description: ''
+  /api/users/login/request-code/:
+    post:
+      operationId: api_users_login_request_code_create
+      description: Solicita código de login via email (para usuários normais)
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/login/verify-code/:
+    post:
+      operationId: api_users_login_verify_code_create
+      description: Faz login usando código recebido por email
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/token/:
+    post:
+      operationId: api_users_token_create
+      description: Login apenas para superusers (admins) com email e senha
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/token/refresh/:
+    post:
+      operationId: api_users_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/users/token/revoke/:
+    post:
+      operationId: api_users_token_revoke_create
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/user/:
+    get:
+      operationId: api_users_user_retrieve
+      description: Return data from user.
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: api_users_user_create
+      description: Create a new user.
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: api_users_user_partial_update
+      description: Update user data.
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/user/confirm-email/:
+    post:
+      operationId: api_users_user_confirm_email_create
+      description: Confirma email do usuário e ativa a conta automaticamente
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/user/password_reset/:
+    post:
+      operationId: api_users_user_password_reset_create
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/user/password_reset/confirm/:
+    post:
+      operationId: api_users_user_password_reset_confirm_create
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/user/resend-email-confirmation/:
+    post:
+      operationId: api_users_user_resend_email_confirmation_create
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    DataTypeEnum:
+      enum:
+      - quantitative
+      - categorical
+      type: string
+      description: |-
+        * `quantitative` - Quantitative
+        * `categorical` - Categorical
+    DesignTypeEnum:
+      enum:
+      - full_factorial
+      - fractional_factorial
+      - plackett_burman
+      - box_behnken
+      - central_composite
+      type: string
+      description: |-
+        * `full_factorial` - Full Factorial
+        * `fractional_factorial` - Fractional Factorial
+        * `plackett_burman` - Plackett-Burman
+        * `box_behnken` - Box-Behnken
+        * `central_composite` - Central Composite
+    ExperimentCreate:
+      type: object
+      description: Serializer para criação de experimentos.
+      properties:
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        design_type:
+          $ref: '#/components/schemas/DesignTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+      required:
+      - slug
+      - title
+    ExperimentDetail:
+      type: object
+      description: Serializer completo para detalhes do experimento.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        design_type:
+          $ref: '#/components/schemas/DesignTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        owner:
+          type: integer
+          readOnly: true
+        owner_email:
+          type: string
+          format: email
+          readOnly: true
+        owner_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - owner
+      - owner_email
+      - owner_name
+      - slug
+      - title
+      - updated_at
+    ExperimentList:
+      type: object
+      description: Serializer simplificado para listagem de experimentos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 200
+        design_type:
+          $ref: '#/components/schemas/DesignTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        owner_email:
+          type: string
+          format: email
+          readOnly: true
+        owner_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - owner_email
+      - owner_name
+      - slug
+      - title
+      - updated_at
+    ExperimentRunCreate:
+      type: object
+      description: Serializer para criação de runs.
+      properties:
+        standard_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Order in the standard design matrix
+        run_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Randomized order of execution
+        is_center_point:
+          type: boolean
+          description: Whether this run is a center point (for replication)
+        factor_values:
+          description: Dictionary mapping factor IDs to their values for this run
+        response_values:
+          description: Dictionary mapping response variable IDs to their measured
+            values
+        is_excluded:
+          type: boolean
+          description: Whether to exclude this run from analysis (e.g., outlier)
+      required:
+      - run_order
+      - standard_order
+    ExperimentRunDetail:
+      type: object
+      description: Serializer completo para detalhes do run.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        standard_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Order in the standard design matrix
+        run_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Randomized order of execution
+        is_center_point:
+          type: boolean
+          description: Whether this run is a center point (for replication)
+        factor_values:
+          description: Dictionary mapping factor IDs to their values for this run
+        response_values:
+          description: Dictionary mapping response variable IDs to their measured
+            values
+        is_excluded:
+          type: boolean
+          description: Whether to exclude this run from analysis (e.g., outlier)
+        experiment:
+          type: integer
+          readOnly: true
+        experiment_title:
+          type: string
+          readOnly: true
+        experiment_slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        has_responses:
+          type: string
+          readOnly: true
+        is_complete:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - experiment
+      - experiment_slug
+      - experiment_title
+      - has_responses
+      - id
+      - is_complete
+      - run_order
+      - standard_order
+      - updated_at
+    ExperimentRunList:
+      type: object
+      description: Serializer simplificado para listagem de runs.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        standard_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Order in the standard design matrix
+        run_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Randomized order of execution
+        is_center_point:
+          type: boolean
+          description: Whether this run is a center point (for replication)
+        is_excluded:
+          type: boolean
+          description: Whether to exclude this run from analysis (e.g., outlier)
+        has_responses:
+          type: string
+          readOnly: true
+        is_complete:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - has_responses
+      - id
+      - is_complete
+      - run_order
+      - standard_order
+      - updated_at
+    ExperimentRunUpdate:
+      type: object
+      description: Serializer para atualização de runs.
+      properties:
+        standard_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Order in the standard design matrix
+        run_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Randomized order of execution
+        is_center_point:
+          type: boolean
+          description: Whether this run is a center point (for replication)
+        factor_values:
+          description: Dictionary mapping factor IDs to their values for this run
+        response_values:
+          description: Dictionary mapping response variable IDs to their measured
+            values
+        is_excluded:
+          type: boolean
+          description: Whether to exclude this run from analysis (e.g., outlier)
+      required:
+      - run_order
+      - standard_order
+    ExperimentUpdate:
+      type: object
+      description: Serializer para atualização de experimentos.
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        design_type:
+          $ref: '#/components/schemas/DesignTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+      required:
+      - title
+    FactorCreate:
+      type: object
+      description: Serializer para criação de fatores.
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 20
+        data_type:
+          $ref: '#/components/schemas/DataTypeEnum'
+        precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Number of decimal places for quantitative factors
+        levels_config:
+          title: Levels configuration
+          description: JSON with levels configuration
+      required:
+      - name
+      - symbol
+    FactorDetail:
+      type: object
+      description: Serializer completo para detalhes do fator.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 20
+        data_type:
+          $ref: '#/components/schemas/DataTypeEnum'
+        precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Number of decimal places for quantitative factors
+        levels_config:
+          title: Levels configuration
+          description: JSON with levels configuration
+        experiment:
+          type: integer
+          readOnly: true
+        experiment_title:
+          type: string
+          readOnly: true
+        experiment_slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - experiment
+      - experiment_slug
+      - experiment_title
+      - id
+      - name
+      - symbol
+      - updated_at
+    FactorList:
+      type: object
+      description: Serializer simplificado para listagem de fatores.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 20
+        data_type:
+          $ref: '#/components/schemas/DataTypeEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - symbol
+      - updated_at
+    FactorUpdate:
+      type: object
+      description: Serializer para atualização de fatores.
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 20
+        data_type:
+          $ref: '#/components/schemas/DataTypeEnum'
+        precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Number of decimal places for quantitative factors
+        levels_config:
+          title: Levels configuration
+          description: JSON with levels configuration
+      required:
+      - name
+      - symbol
+    OptimizationGoalEnum:
+      enum:
+      - maximize
+      - minimize
+      - target
+      - none
+      type: string
+      description: |-
+        * `maximize` - Maximize
+        * `minimize` - Minimize
+        * `target` - Target
+        * `none` - Nenhum(a/as)
+    PatchedExperimentRunDetail:
+      type: object
+      description: Serializer completo para detalhes do run.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        standard_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Order in the standard design matrix
+        run_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Randomized order of execution
+        is_center_point:
+          type: boolean
+          description: Whether this run is a center point (for replication)
+        factor_values:
+          description: Dictionary mapping factor IDs to their values for this run
+        response_values:
+          description: Dictionary mapping response variable IDs to their measured
+            values
+        is_excluded:
+          type: boolean
+          description: Whether to exclude this run from analysis (e.g., outlier)
+        experiment:
+          type: integer
+          readOnly: true
+        experiment_title:
+          type: string
+          readOnly: true
+        experiment_slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        has_responses:
+          type: string
+          readOnly: true
+        is_complete:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedExperimentRunUpdate:
+      type: object
+      description: Serializer para atualização de runs.
+      properties:
+        standard_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Order in the standard design matrix
+        run_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Randomized order of execution
+        is_center_point:
+          type: boolean
+          description: Whether this run is a center point (for replication)
+        factor_values:
+          description: Dictionary mapping factor IDs to their values for this run
+        response_values:
+          description: Dictionary mapping response variable IDs to their measured
+            values
+        is_excluded:
+          type: boolean
+          description: Whether to exclude this run from analysis (e.g., outlier)
+    PatchedExperimentUpdate:
+      type: object
+      description: Serializer para atualização de experimentos.
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        design_type:
+          $ref: '#/components/schemas/DesignTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+    PatchedFactorUpdate:
+      type: object
+      description: Serializer para atualização de fatores.
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 20
+        data_type:
+          $ref: '#/components/schemas/DataTypeEnum'
+        precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Number of decimal places for quantitative factors
+        levels_config:
+          title: Levels configuration
+          description: JSON with levels configuration
+    PatchedResponseVariableUpdate:
+      type: object
+      description: Serializer para atualização de variáveis de resposta.
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        unit:
+          type: string
+          description: Unit of measurement (e.g., kg, °C, %)
+          maxLength: 50
+        optimization_goal:
+          allOf:
+          - $ref: '#/components/schemas/OptimizationGoalEnum'
+          description: |-
+            Whether to maximize, minimize, or target this response
+
+            * `maximize` - Maximize
+            * `minimize` - Minimize
+            * `target` - Target
+            * `none` - Nenhum(a/as)
+    ResponseVariableCreate:
+      type: object
+      description: Serializer para criação de variáveis de resposta.
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        unit:
+          type: string
+          description: Unit of measurement (e.g., kg, °C, %)
+          maxLength: 50
+        optimization_goal:
+          allOf:
+          - $ref: '#/components/schemas/OptimizationGoalEnum'
+          description: |-
+            Whether to maximize, minimize, or target this response
+
+            * `maximize` - Maximize
+            * `minimize` - Minimize
+            * `target` - Target
+            * `none` - Nenhum(a/as)
+      required:
+      - name
+    ResponseVariableDetail:
+      type: object
+      description: Serializer completo para detalhes da variável de resposta.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        unit:
+          type: string
+          description: Unit of measurement (e.g., kg, °C, %)
+          maxLength: 50
+        optimization_goal:
+          allOf:
+          - $ref: '#/components/schemas/OptimizationGoalEnum'
+          description: |-
+            Whether to maximize, minimize, or target this response
+
+            * `maximize` - Maximize
+            * `minimize` - Minimize
+            * `target` - Target
+            * `none` - Nenhum(a/as)
+        experiment:
+          type: integer
+          readOnly: true
+        experiment_title:
+          type: string
+          readOnly: true
+        experiment_slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - experiment
+      - experiment_slug
+      - experiment_title
+      - id
+      - name
+      - updated_at
+    ResponseVariableList:
+      type: object
+      description: Serializer simplificado para listagem de variáveis de resposta.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        unit:
+          type: string
+          description: Unit of measurement (e.g., kg, °C, %)
+          maxLength: 50
+        optimization_goal:
+          allOf:
+          - $ref: '#/components/schemas/OptimizationGoalEnum'
+          description: |-
+            Whether to maximize, minimize, or target this response
+
+            * `maximize` - Maximize
+            * `minimize` - Minimize
+            * `target` - Target
+            * `none` - Nenhum(a/as)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    ResponseVariableUpdate:
+      type: object
+      description: Serializer para atualização de variáveis de resposta.
+      properties:
+        name:
+          type: string
+          title: Nome
+          maxLength: 100
+        unit:
+          type: string
+          description: Unit of measurement (e.g., kg, °C, %)
+          maxLength: 50
+        optimization_goal:
+          allOf:
+          - $ref: '#/components/schemas/OptimizationGoalEnum'
+          description: |-
+            Whether to maximize, minimize, or target this response
+
+            * `maximize` - Maximize
+            * `minimize` - Minimize
+            * `target` - Target
+            * `none` - Nenhum(a/as)
+      required:
+      - name
+    StatusEnum:
+      enum:
+      - draft
+      - design_ready
+      - data_collection
+      - analysis_ready
+      - completed
+      - archived
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `design_ready` - Design Ready
+        * `data_collection` - Data Collection
+        * `analysis_ready` - Analysis Ready
+        * `completed` - Completed
+        * `archived` - Archived
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

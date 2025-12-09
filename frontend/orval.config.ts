@@ -7,7 +7,12 @@ export default defineConfig({
       target: 'services', // Onde os arquivos serão salvos
       schemas: 'types', // Onde as interfaces (tipos) ficam
       client: 'react-query', // Gera hooks prontos (useCreateExperiment, etc)
-      baseUrl: 'http://localhost:8000', // A URL base da sua API real
+      override: {
+        mutator: {
+          path: './lib/api-client.ts',
+          name: 'customInstance',
+        },
+      },
     },
     input: {
       // AQUI ESTÁ A MÁGICA: Aponta para o Django rodando localmente

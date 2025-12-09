@@ -11,68 +11,83 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push('/dashboard');
+      router.push('/experiments');
     }
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground font-mono text-sm">Carregando...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="text-center max-w-2xl">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Consulta de Placas
-        </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          Sistema completo para consulta de informações de veículos
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4">
+      <div className="text-center max-w-3xl">
+        {/* Logo/Brand */}
+        <div className="mb-8">
+          <h1 className="text-6xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-2">
+            Facexp
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-sm font-mono">
+            <span className="px-3 py-1.5 rounded-md bg-science-500/20 text-science-800 dark:text-science-200 font-semibold border border-science-500/30">
+              Design of Experiments
+            </span>
+            <span className="text-slate-400 dark:text-slate-600">•</span>
+            <span className="text-slate-700 dark:text-slate-300 font-medium">DOE Platform</span>
+          </div>
+        </div>
+
+        {/* Hero Text */}
+        <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 leading-relaxed">
+          Plataforma profissional para planejamento, execução e análise de
+          <span className="font-bold text-slate-900 dark:text-slate-100"> experimentos fatoriais</span>.
+          Otimize processos com metodologia científica.
         </p>
         
+        {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/login"
-            className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-8 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-all shadow-md hover:shadow-lg"
           >
             Entrar
           </Link>
           <Link
             href="/register"
-            className="px-8 py-3 border-2 border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors"
+            className="px-8 py-3 border-2 border-primary text-primary font-medium rounded-lg hover:bg-accent transition-colors"
           >
             Criar conta
           </Link>
         </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-6 bg-white rounded-lg shadow-md">
-            <div className="text-3xl mb-2">🚗</div>
-            <h3 className="font-semibold text-gray-900 mb-2">Consultas Rápidas</h3>
-            <p className="text-gray-600 text-sm">
-              Acesse informações de veículos de forma rápida e segura
+          <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow">
+            <div className="text-3xl mb-3">🧪</div>
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2 text-lg">Design of Experiments</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Crie e gerencie experimentos fatoriais com interface intuitiva
             </p>
           </div>
           
-          <div className="p-6 bg-white rounded-lg shadow-md">
-            <div className="text-3xl mb-2">💳</div>
-            <h3 className="font-semibold text-gray-900 mb-2">Sistema de Créditos</h3>
-            <p className="text-gray-600 text-sm">
-              Gerencie seus créditos e consultas facilmente
+          <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow">
+            <div className="text-3xl mb-3">📊</div>
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2 text-lg">Análise Estatística</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Analise resultados com ferramentas estatísticas avançadas
             </p>
           </div>
           
-          <div className="p-6 bg-white rounded-lg shadow-md">
-            <div className="text-3xl mb-2">🔒</div>
-            <h3 className="font-semibold text-gray-900 mb-2">Seguro e Confiável</h3>
-            <p className="text-gray-600 text-sm">
-              Login com código por e-mail para máxima segurança
+          <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow">
+            <div className="text-3xl mb-3">🔬</div>
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2 text-lg">Metodologia Científica</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Baseado em metodologias comprovadas de DOE fatorial
             </p>
           </div>
         </div>

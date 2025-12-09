@@ -23,18 +23,9 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    balance = serializers.SerializerMethodField()
-
     class Meta:
         model = get_user_model()
-        fields = ["name", "email", "balance"]
-    
-    def get_balance(self, obj):
-        """Retorna o saldo do usuário"""
-        try:
-            return str(obj.user_balance.remaining)
-        except AttributeError:
-            return "0.00"
+        fields = ["name", "email"]
 
     def validate_email(self, value):
         raise serializers.ValidationError("O email não pode ser alterado.")
