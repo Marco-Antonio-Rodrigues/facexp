@@ -25,16 +25,84 @@ AXIOS_INSTANCE.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor para tratar erros de autenticação
+// Flag para evitar múltiplas tentativas de refresh simultâneas
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: unknown) => void }> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
+// Interceptor para tratar erros de autenticação e fazer refresh automático
 AXIOS_INSTANCE.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Token expirado ou inválido
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // Se for erro 401 e não for uma tentativa de login/refresh
+    if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+      const refreshToken = localStorage.getItem('refresh_token');
+      
+      // Se não tiver refresh token, redireciona para login
+      if (!refreshToken) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+      
+      // Se já estiver fazendo refresh, adiciona à fila
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return AXIOS_INSTANCE(originalRequest);
+        }).catch((err) => {
+          return Promise.reject(err);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Tenta fazer refresh do token
+        const response = await Axios.post(`${API_BASE_URL}/api/users/token/refresh/`, {
+          refresh: refreshToken,
+        });
+
+        const { access } = response.data;
+        localStorage.setItem('access_token', access);
+        
+        // Atualiza o token na requisição original
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+        
+        // Processa fila de requisições pendentes
+        processQueue(null, access);
+        
+        // Retenta a requisição original
+        return AXIOS_INSTANCE(originalRequest);
+      } catch (refreshError) {
+        // Refresh falhou, limpa tokens e redireciona
+        processQueue(refreshError, null);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+    
     return Promise.reject(error);
   }
 );

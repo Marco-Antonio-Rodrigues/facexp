@@ -194,41 +194,48 @@ class ExperimentViewSet(viewsets.ModelViewSet):
         # Para outros designs, implementar lógica específica
         combinations = list(product(*[levels for _, levels in factor_levels]))
         
-        # Cria os runs
+        # Cria os runs com réplicas
         runs_created = []
-        run_orders = list(range(1, len(combinations) + 1))
+        replicates = experiment.replicates if experiment.replicates > 0 else 1
+        total_runs = len(combinations) * replicates
+        run_orders = list(range(1, total_runs + 1))
         random.shuffle(run_orders)  # Randomiza a ordem de execução
         
-        for std_order, (combination, run_order) in enumerate(zip(combinations, run_orders), start=1):
-            # Monta o dicionário de valores dos fatores
-            factor_values = {}
-            for (factor_id, _), value in zip(factor_levels, combination):
-                factor_values[str(factor_id)] = value
-            
-            # Verifica se é ponto central (todos os fatores no nível médio/central)
-            is_center = all(
-                (isinstance(factor.levels_config, list) and 
-                 len(factor.levels_config) % 2 == 1 and 
-                 factor_values[str(fid)] == factor.levels_config[len(factor.levels_config) // 2]) or
-                (isinstance(factor.levels_config, dict) and 
-                 factor_values[str(fid)] == factor.levels_config.get('center'))
-                for fid, factor in [(f.id, f) for f in factors]
-                if factor.data_type == Factor.DataType.QUANTITATIVE
-            )
-            
-            run = ExperimentRun.objects.create(
-                experiment=experiment,
-                standard_order=std_order,
-                run_order=run_order,
-                is_center_point=is_center,
-                factor_values=factor_values,
-                response_values={}
-            )
-            runs_created.append(run)
+        run_index = 0
+        for std_order, combination in enumerate(combinations, start=1):
+            # Cria réplicas para esta combinação
+            for replicate_num in range(1, replicates + 1):
+                # Monta o dicionário de valores dos fatores
+                factor_values = {}
+                for (factor_id, _), value in zip(factor_levels, combination):
+                    factor_values[str(factor_id)] = value
+                
+                # Verifica se é ponto central (todos os fatores no nível médio/central)
+                is_center = all(
+                    (isinstance(factor.levels_config, list) and 
+                     len(factor.levels_config) % 2 == 1 and 
+                     factor_values[str(fid)] == factor.levels_config[len(factor.levels_config) // 2]) or
+                    (isinstance(factor.levels_config, dict) and 
+                     factor_values[str(fid)] == factor.levels_config.get('center'))
+                    for fid, factor in [(f.id, f) for f in factors]
+                    if factor.data_type == Factor.DataType.QUANTITATIVE
+                )
+                
+                run = ExperimentRun.objects.create(
+                    experiment=experiment,
+                    standard_order=std_order,
+                    run_order=run_orders[run_index],
+                    replicate_number=replicate_num,
+                    is_center_point=is_center,
+                    factor_values=factor_values,
+                    response_values={}
+                )
+                runs_created.append(run)
+                run_index += 1
         
-        # Atualiza status do experimento para IN_PROGRESS
+        # Atualiza status do experimento para DESIGN_READY
         if experiment.status == Experiment.Status.DRAFT:
-            experiment.status = Experiment.Status.IN_PROGRESS
+            experiment.status = Experiment.Status.DESIGN_READY
             experiment.save()
         
         serializer = ExperimentRunListSerializer(runs_created, many=True)

@@ -17,6 +17,14 @@ export interface FactorList {
   /** @maxLength 20 */
   symbol: string;
   data_type?: DataTypeEnum;
+  /**
+   * Number of decimal places for quantitative factors
+   * @minimum -9223372036854776000
+   * @maximum 9223372036854776000
+   */
+  precision?: number;
+  /** JSON with levels configuration */
+  levels_config?: unknown;
   readonly created_at: string;
   readonly updated_at: string;
 }

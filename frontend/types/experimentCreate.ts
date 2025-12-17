@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { DesignTypeEnum } from './designTypeEnum';
-import type { StatusEnum } from './statusEnum';
 
 /**
  * Serializer para criação de experimentos.
@@ -18,5 +17,10 @@ export interface ExperimentCreate {
   title: string;
   description?: string;
   design_type?: DesignTypeEnum;
-  status?: StatusEnum;
+  /**
+   * Number of replicates for each factor combination
+   * @minimum -9223372036854776000
+   * @maximum 9223372036854776000
+   */
+  replicates?: number;
 }

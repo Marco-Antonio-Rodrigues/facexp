@@ -22,6 +22,12 @@ export interface ExperimentRunCreate {
    * @maximum 9223372036854776000
    */
   run_order: number;
+  /**
+   * Which replicate this run represents (1, 2, 3...)
+   * @minimum -9223372036854776000
+   * @maximum 9223372036854776000
+   */
+  replicate_number?: number;
   /** Whether this run is a center point (for replication) */
   is_center_point?: boolean;
   /** Dictionary mapping factor IDs to their values for this run */

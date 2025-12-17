@@ -18,6 +18,19 @@ class ResponseVariableInline(admin.TabularInline):
     show_change_link = True
 
 
+class ExperimentRunInline(admin.TabularInline):
+    model = ExperimentRun
+    extra = 0
+    fields = ['run_order', 'standard_order', 'replicate_number', 'is_center_point', 'is_excluded', 'has_responses']
+    readonly_fields = ['run_order', 'standard_order', 'replicate_number', 'has_responses', 'created_at']
+    show_change_link = True
+    can_delete = True
+    
+    def has_responses(self, obj):
+        return '✓' if obj and obj.has_responses else '✗'
+    has_responses.short_description = 'Tem Respostas?'
+
+
 @admin.register(Experiment)
 class ExperimentAdmin(admin.ModelAdmin):
     list_display = ['title', 'slug', 'design_type', 'status', 'owner', 'created_at']
@@ -26,14 +39,14 @@ class ExperimentAdmin(admin.ModelAdmin):
     readonly_fields = ['slug', 'created_at', 'updated_at']
     list_per_page = 20
     date_hierarchy = 'created_at'
-    inlines = [FactorInline, ResponseVariableInline]
+    inlines = [FactorInline, ResponseVariableInline, ExperimentRunInline]
     
     fieldsets = (
         ('Informações Básicas', {
             'fields': ('title', 'slug', 'description', 'owner')
         }),
         ('Configuração do Experimento', {
-            'fields': ('design_type', 'status')
+            'fields': ('design_type', 'status', 'replicates')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -106,22 +119,26 @@ class ResponseVariableAdmin(admin.ModelAdmin):
 
 @admin.register(ExperimentRun)
 class ExperimentRunAdmin(admin.ModelAdmin):
-    list_display = ['run_order', 'standard_order', 'experiment', 'is_center_point', 'is_excluded', 'created_at']
-    list_filter = ['is_center_point', 'is_excluded', 'created_at']
+    list_display = ['run_order', 'standard_order', 'replicate_number', 'experiment', 'is_center_point', 'is_excluded', 'has_responses', 'created_at']
+    list_filter = ['is_center_point', 'is_excluded', 'replicate_number', 'created_at']
     search_fields = ['experiment__title', 'standard_order', 'run_order']
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'has_responses', 'is_complete']
     list_per_page = 50
     date_hierarchy = 'created_at'
     
     fieldsets = (
         ('Informações do Run', {
-            'fields': ('experiment', 'standard_order', 'run_order')
+            'fields': ('experiment', 'standard_order', 'run_order', 'replicate_number')
         }),
         ('Tipo e Controle', {
             'fields': ('is_center_point', 'is_excluded')
         }),
         ('Dados do Experimento', {
             'fields': ('factor_values', 'response_values')
+        }),
+        ('Status', {
+            'fields': ('has_responses', 'is_complete'),
+            'classes': ('collapse',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

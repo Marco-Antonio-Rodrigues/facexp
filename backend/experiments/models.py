@@ -43,6 +43,13 @@ class Experiment(models.Model):
         default=Status.DRAFT
     )
     
+    # Configuração de Repetições
+    replicates = models.IntegerField(
+        _('replicates'),
+        default=1,
+        help_text=_('Number of replicates for each factor combination')
+    )
+    
     # Relacionamentos
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -214,6 +221,11 @@ class ExperimentRun(models.Model):
     run_order = models.IntegerField(
         _('run order'),
         help_text=_('Randomized order of execution')
+    )
+    replicate_number = models.IntegerField(
+        _('replicate number'),
+        default=1,
+        help_text=_('Which replicate this run represents (1, 2, 3...)')
     )
     
     # Tipo de Ponto

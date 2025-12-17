@@ -28,7 +28,7 @@ interface FormData {
   title: string;
   description: string;
   design_type: DesignTypeEnum;
-  status: StatusEnum;
+  replicates: number;
 }
 
 export default function EditExperimentPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -42,7 +42,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
     title: '',
     description: '',
     design_type: DesignTypeEnum.full_factorial,
-    status: StatusEnum.draft,
+    replicates: 1,
   });
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
         title: data.title,
         description: data.description,
         design_type: data.design_type,
-        status: data.status,
+        replicates: data.replicates || 1,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar experimento');
@@ -83,7 +83,9 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Converte para número se for o campo replicates
+    const finalValue = field === 'replicates' ? parseInt(value) || 1 : value;
+    setFormData(prev => ({ ...prev, [field]: finalValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -246,25 +248,22 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
                 </p>
               </div>
 
-              {/* Status */}
+              {/* Número de Repetições */}
               <div>
-                <label htmlFor="status" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Status
+                <label htmlFor="replicates" className="block text-sm font-semibold text-slate-900 mb-2">
+                  Número de Repetições (Réplicas)
                 </label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) => handleChange('status', e.target.value as StatusEnum)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-mono"
-                >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <Input
+                  id="replicates"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={formData.replicates}
+                  onChange={(e) => handleChange('replicates', e.target.value)}
+                  className="w-full font-mono"
+                />
                 <p className="text-xs text-slate-500 mt-1">
-                  Estado atual do experimento
+                  Número de vezes que cada combinação será executada (mínimo 1)
                 </p>
               </div>
 
@@ -310,9 +309,14 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
                   Atenção
                 </h3>
                 <p className="text-sm text-slate-600">
-                  Alterar o tipo de design pode afetar as corridas experimentais já geradas. 
-                  Certifique-se de que essa mudança é necessária antes de salvar.
+                  O status do experimento é gerenciado automaticamente pelo sistema:
                 </p>
+                <ul className="text-sm text-slate-600 mt-2 space-y-1 list-disc list-inside">
+                  <li><strong>Rascunho</strong> - Criação inicial</li>
+                  <li><strong>Design Pronto</strong> - Após gerar corridas</li>
+                  <li><strong>Coleta de Dados</strong> - Durante preenchimento dos dados</li>
+                  <li><strong>Pronto para Análise</strong> - Todos os dados coletados</li>
+                </ul>
               </div>
             </div>
           </CardContent>

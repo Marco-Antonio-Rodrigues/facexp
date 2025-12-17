@@ -19,6 +19,12 @@ export interface ExperimentList {
   title: string;
   design_type?: DesignTypeEnum;
   status?: StatusEnum;
+  /**
+   * Number of replicates for each factor combination
+   * @minimum -9223372036854776000
+   * @maximum 9223372036854776000
+   */
+  replicates?: number;
   readonly owner_email: string;
   readonly owner_name: string;
   readonly created_at: string;

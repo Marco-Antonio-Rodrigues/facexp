@@ -17,6 +17,7 @@ class ExperimentListSerializer(serializers.ModelSerializer):
             'title',
             'design_type',
             'status',
+            'replicates',
             'owner_email',
             'owner_name',
             'created_at',
@@ -41,6 +42,7 @@ class ExperimentDetailSerializer(serializers.ModelSerializer):
             'description',
             'design_type',
             'status',
+            'replicates',
             'owner',
             'owner_email',
             'owner_name',
@@ -62,7 +64,7 @@ class ExperimentCreateSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'design_type',
-            'status',
+            'replicates',
         ]
         read_only_fields = ['slug']
     
@@ -82,7 +84,7 @@ class ExperimentUpdateSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'design_type',
-            'status',
+            'replicates',
         ]
 
 
@@ -310,6 +312,7 @@ class ExperimentRunListSerializer(serializers.ModelSerializer):
             'id',
             'standard_order',
             'run_order',
+            'replicate_number',
             'is_center_point',
             'is_excluded',
             'has_responses',
@@ -335,6 +338,7 @@ class ExperimentRunDetailSerializer(serializers.ModelSerializer):
             'id',
             'standard_order',
             'run_order',
+            'replicate_number',
             'is_center_point',
             'factor_values',
             'response_values',
@@ -360,6 +364,7 @@ class ExperimentRunCreateSerializer(serializers.ModelSerializer):
         fields = [
             'standard_order',
             'run_order',
+            'replicate_number',
             'is_center_point',
             'factor_values',
             'response_values',
@@ -421,6 +426,7 @@ class ExperimentRunUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'standard_order',
             'run_order',
+            'replicate_number',
             'is_center_point',
             'factor_values',
             'response_values',

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { Experiment, StatusEnum, DesignTypeEnum, FactorDetail, DataTypeEnum, ResponseVariableDetail, OptimizationGoalEnum } from '@/types';
 import FactorModal from '@/components/FactorModal';
 import ResponseVariableModal from '@/components/ResponseVariableModal';
@@ -329,6 +330,18 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
                   <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-1">Repetições</h3>
+                    <p className="text-slate-900 font-mono">
+                      {experiment.replicates || 1} {experiment.replicates === 1 ? 'réplica' : 'réplicas'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Cada combinação será executada {experiment.replicates || 1} {experiment.replicates === 1 ? 'vez' : 'vezes'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                  <div>
                     <h3 className="text-sm font-semibold text-slate-700 mb-1">Criado em</h3>
                     <p className="text-slate-600">
                       {new Date(experiment.created_at).toLocaleString('pt-BR', {
@@ -398,17 +411,33 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                               {factor.data_type === DataTypeEnum.quantitative ? 'Quantitativo' : 'Categórico'}
                             </span>
                           </div>
-                          <div className="text-sm text-slate-600">
+                          <div className="flex flex-wrap gap-2 mt-2">
                             {factor.data_type === DataTypeEnum.quantitative ? (
-                              <span className="font-mono">
-                                Níveis: {Array.isArray(factor.levels_config) 
-                                  ? factor.levels_config.join('; ')
-                                  : `${factor.levels_config?.low} (baixo) → ${factor.levels_config?.center} (centro) → ${factor.levels_config?.high} (alto)`}
-                              </span>
+                              Array.isArray(factor.levels_config) ? (
+                                factor.levels_config.map((level, idx) => (
+                                  <Badge key={idx} variant="quantitative" className="font-mono">
+                                    {level}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <>
+                                  <Badge variant="quantitative" className="font-mono">
+                                    {factor.levels_config?.low} <span className="text-xs ml-1">(baixo)</span>
+                                  </Badge>
+                                  <Badge variant="quantitative" className="font-mono">
+                                    {factor.levels_config?.center} <span className="text-xs ml-1">(centro)</span>
+                                  </Badge>
+                                  <Badge variant="quantitative" className="font-mono">
+                                    {factor.levels_config?.high} <span className="text-xs ml-1">(alto)</span>
+                                  </Badge>
+                                </>
+                              )
                             ) : (
-                              <span>
-                                Níveis: {Array.isArray(factor.levels_config) ? factor.levels_config.join('; ') : ''}
-                              </span>
+                              Array.isArray(factor.levels_config) && factor.levels_config.map((level, idx) => (
+                                <Badge key={idx} variant="categorical">
+                                  {level}
+                                </Badge>
+                              ))
                             )}
                           </div>
                         </div>
