@@ -98,6 +98,8 @@ class FactorListSerializer(serializers.ModelSerializer):
             'name',
             'symbol',
             'data_type',
+            'precision',
+            'levels_config',
             'created_at',
             'updated_at',
         ]
@@ -161,9 +163,10 @@ class FactorCreateSerializer(serializers.ModelSerializer):
     def validate_levels_config(self, value):
         """
         Valida a estrutura do levels_config baseado no data_type.
+        Aceita tanto dict (formato legado) quanto list (formato novo).
         """
-        if not isinstance(value, dict):
-            raise serializers.ValidationError('levels_config must be a dictionary.')
+        if not isinstance(value, (dict, list)):
+            raise serializers.ValidationError('levels_config must be a dictionary or list.')
         return value
 
 

@@ -174,15 +174,19 @@ class ExperimentViewSet(viewsets.ModelViewSet):
         factor_levels = []
         for factor in factors:
             if factor.data_type == Factor.DataType.QUANTITATIVE:
-                # Quantitativo: low, center, high
-                levels = [
-                    factor.levels_config['low'],
-                    factor.levels_config['center'],
-                    factor.levels_config['high']
-                ]
+                # Quantitativo: array de números ou formato legado {low, center, high}
+                if isinstance(factor.levels_config, list):
+                    levels = factor.levels_config
+                else:
+                    # Formato legado
+                    levels = [
+                        factor.levels_config['low'],
+                        factor.levels_config['center'],
+                        factor.levels_config['high']
+                    ]
             else:
-                # Categórico: lista de níveis
-                levels = factor.levels_config['levels']
+                # Categórico: array direto ou formato legado {'levels': [...]}
+                levels = factor.levels_config if isinstance(factor.levels_config, list) else factor.levels_config.get('levels', [])
             
             factor_levels.append((factor.id, levels))
         
@@ -201,9 +205,13 @@ class ExperimentViewSet(viewsets.ModelViewSet):
             for (factor_id, _), value in zip(factor_levels, combination):
                 factor_values[str(factor_id)] = value
             
-            # Verifica se é ponto central (todos os fatores no nível médio)
+            # Verifica se é ponto central (todos os fatores no nível médio/central)
             is_center = all(
-                factor_values[str(fid)] == factor.levels_config.get('center')
+                (isinstance(factor.levels_config, list) and 
+                 len(factor.levels_config) % 2 == 1 and 
+                 factor_values[str(fid)] == factor.levels_config[len(factor.levels_config) // 2]) or
+                (isinstance(factor.levels_config, dict) and 
+                 factor_values[str(fid)] == factor.levels_config.get('center'))
                 for fid, factor in [(f.id, f) for f in factors]
                 if factor.data_type == Factor.DataType.QUANTITATIVE
             )

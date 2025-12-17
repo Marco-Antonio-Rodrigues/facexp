@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -11,12 +11,7 @@ interface FactorFormData {
   symbol: string;
   data_type: DataTypeEnum;
   precision: number;
-  levels_config: {
-    low?: number;
-    high?: number;
-    center?: number;
-    levels?: string[];
-  };
+  levels_config: number[] | string[];
 }
 
 interface FactorModalProps {
@@ -36,16 +31,51 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
     symbol: '',
     data_type: DataTypeEnum.quantitative,
     precision: 2,
-    levels_config: {
-      low: -1,
-      high: 1,
-      center: 0,
-    },
+    levels_config: [-1, 0, 1],
   });
 
   const [categoricalInput, setCategoricalInput] = useState(
-    editData?.levels_config?.levels?.join(', ') || ''
+    editData && Array.isArray(editData.levels_config) && typeof editData.levels_config[0] === 'string'
+      ? editData.levels_config.join('; ')
+      : ''
   );
+
+  const [quantitativeInput, setQuantitativeInput] = useState(
+    editData && Array.isArray(editData.levels_config) && typeof editData.levels_config[0] === 'number'
+      ? editData.levels_config.map(String).join('; ')
+      : '-1; 0; 1'
+  );
+
+  // Reseta o formulário quando o modal abre/fecha ou editData muda
+  useEffect(() => {
+    if (isOpen) {
+      if (editData) {
+        setFormData(editData);
+        setCategoricalInput(
+          Array.isArray(editData.levels_config) && typeof editData.levels_config[0] === 'string'
+            ? editData.levels_config.join('; ')
+            : ''
+        );
+        setQuantitativeInput(
+          Array.isArray(editData.levels_config) && typeof editData.levels_config[0] === 'number'
+            ? editData.levels_config.map(String).join('; ')
+            : '-1; 0; 1'
+        );
+      } else {
+        // Reseta para valores padrão quando não está editando
+        setFormData({
+          name: '',
+          symbol: '',
+          data_type: DataTypeEnum.quantitative,
+          precision: 2,
+          levels_config: [-1, 0, 1],
+        });
+        setCategoricalInput('');
+        setQuantitativeInput('-1; 0; 1');
+      }
+      setError('');
+    }
+  }, [isOpen, editData]);
 
   if (!isOpen) return null;
 
@@ -57,10 +87,11 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
     setFormData(prev => ({
       ...prev,
       data_type: dataType,
-      levels_config: dataType === DataTypeEnum.quantitative
-        ? { low: -1, high: 1, center: 0 }
-        : { levels: [] },
+      levels_config: dataType === DataTypeEnum.quantitative ? [-1, 0, 1] : [],
     }));
+    if (dataType === DataTypeEnum.quantitative) {
+      setQuantitativeInput('-1; 0; 1');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,12 +104,20 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
     }
 
     if (formData.data_type === DataTypeEnum.categorical) {
-      const levels = categoricalInput.split(',').map(l => l.trim()).filter(Boolean);
+      const levels = categoricalInput.split(';').map(l => l.trim()).filter(Boolean);
       if (levels.length < 2) {
         setError('Fatores categóricos precisam de pelo menos 2 níveis');
         return;
       }
-      formData.levels_config = { levels };
+      formData.levels_config = levels;
+    } else {
+      const levels = quantitativeInput.split(';').map(l => parseFloat(l.trim())).filter(n => !isNaN(n));
+      if (levels.length < 2) {
+        setError('Fatores quantitativos precisam de pelo menos 2 níveis');
+        return;
+      }
+      // Ordenar os níveis
+      formData.levels_config = levels.sort((a, b) => a - b);
     }
 
     setIsLoading(true);
@@ -101,13 +140,59 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || errorData.symbol?.[0] || 'Erro ao salvar fator');
+        console.error('❌ Erro HTTP:', response.status, response.statusText);
+        let errorMessage = `Erro ${response.status}: `;
+        
+        // Clona a resposta para poder ler múltiplas vezes se necessário
+        const responseClone = response.clone();
+        
+        try {
+          const errorData = await response.json();
+          console.error('📋 Dados do erro:', errorData);
+          
+          if (typeof errorData === 'string') {
+            errorMessage += errorData;
+          } else if (errorData.detail) {
+            errorMessage += errorData.detail;
+          } else if (errorData.message) {
+            errorMessage += errorData.message;
+          } else {
+            // Coleta erros de todos os campos
+            const fieldErrors: string[] = [];
+            for (const [field, errors] of Object.entries(errorData)) {
+              if (Array.isArray(errors)) {
+                fieldErrors.push(`${field}: ${errors.join(', ')}`);
+              } else if (typeof errors === 'string') {
+                fieldErrors.push(`${field}: ${errors}`);
+              }
+            }
+            if (fieldErrors.length > 0) {
+              errorMessage += fieldErrors.join('\n');
+            } else {
+              errorMessage += JSON.stringify(errorData);
+            }
+          }
+        } catch (jsonError) {
+          console.error('⚠️ Erro ao parsear JSON:', jsonError);
+          // Se não conseguir fazer parse do JSON, usa o texto do clone
+          try {
+            const textError = await responseClone.text();
+            console.error('📄 Texto do erro:', textError);
+            errorMessage += textError || 'Falha ao processar resposta do servidor';
+          } catch (textError) {
+            errorMessage += 'Falha ao ler resposta do servidor';
+          }
+        }
+        
+        console.error('💬 Mensagem final:', errorMessage);
+        setError(errorMessage);
+        return;
       }
 
       onSuccess();
       onClose();
     } catch (err) {
+      console.error('Erro ao salvar fator:', err);
       setError(err instanceof Error ? err.message : 'Erro ao salvar fator');
     } finally {
       setIsLoading(false);
@@ -129,7 +214,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
         <CardContent>
           {error && (
             <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
-              <p className="text-destructive font-medium">{error}</p>
+              <p className="text-destructive font-medium whitespace-pre-line">{error}</p>
             </div>
           )}
 
@@ -211,72 +296,22 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
               <div className="space-y-4 p-4 bg-blue-50/50 rounded-lg border border-blue-200">
                 <h4 className="font-semibold text-slate-900">Configuração dos Níveis</h4>
                 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="low" className="block text-sm font-semibold text-slate-900 mb-1">
-                      Nível Baixo (-)
-                    </label>
-                    <Input
-                      id="low"
-                      type="number"
-                      step="any"
-                      value={formData.levels_config.low ?? ''}
-                      onChange={(e) => handleChange('levels_config', {
-                        ...formData.levels_config,
-                        low: parseFloat(e.target.value)
-                      })}
-                      required
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="center" className="block text-sm font-semibold text-slate-900 mb-1">
-                      Ponto Central (0)
-                    </label>
-                    <Input
-                      id="center"
-                      type="number"
-                      step="any"
-                      value={formData.levels_config.center ?? ''}
-                      onChange={(e) => handleChange('levels_config', {
-                        ...formData.levels_config,
-                        center: parseFloat(e.target.value)
-                      })}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="high" className="block text-sm font-semibold text-slate-900 mb-1">
-                      Nível Alto (+)
-                    </label>
-                    <Input
-                      id="high"
-                      type="number"
-                      step="any"
-                      value={formData.levels_config.high ?? ''}
-                      onChange={(e) => handleChange('levels_config', {
-                        ...formData.levels_config,
-                        high: parseFloat(e.target.value)
-                      })}
-                      required
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <label htmlFor="precision" className="block text-sm font-semibold text-slate-900 mb-1">
-                    Precisão (casas decimais)
+                  <label htmlFor="quantLevels" className="block text-sm font-semibold text-slate-900 mb-1">
+                    Níveis (valores numéricos separados por ponto e vírgula)
                   </label>
                   <Input
-                    id="precision"
-                    type="number"
-                    min="0"
-                    max="10"
-                    value={formData.precision}
-                    onChange={(e) => handleChange('precision', parseInt(e.target.value))}
+                    id="quantLevels"
+                    type="text"
+                    value={quantitativeInput}
+                    onChange={(e) => setQuantitativeInput(e.target.value)}
+                    placeholder="Ex: -1; 0; 1 ou -2; -1; 0; 1; 2"
+                    required
                     className="w-full"
                   />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Mínimo de 2 níveis. Comum: 3 níveis (-1; 0; 1) ou 5 níveis (-2; -1; 0; 1; 2)
+                  </p>
                 </div>
               </div>
             )}
@@ -288,19 +323,19 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                 
                 <div>
                   <label htmlFor="categorical_levels" className="block text-sm font-semibold text-slate-900 mb-1">
-                    Níveis (separados por vírgula) *
+                    Níveis (separados por ponto e vírgula) *
                   </label>
                   <Input
                     id="categorical_levels"
                     type="text"
                     value={categoricalInput}
                     onChange={(e) => setCategoricalInput(e.target.value)}
-                    placeholder="Ex: Catalisador A, Catalisador B, Catalisador C"
+                    placeholder="Ex: Catalisador A; Catalisador B; Catalisador C"
                     required
                     className="w-full"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    Digite os níveis separados por vírgula (mínimo 2 níveis)
+                    Digite os níveis separados por ponto e vírgula (mínimo 2 níveis)
                   </p>
                 </div>
               </div>

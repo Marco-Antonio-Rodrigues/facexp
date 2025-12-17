@@ -210,7 +210,12 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
       return;
     }
 
-    if (!confirm(`Gerar corridas experimentais para este experimento?\n\nSerá criada uma matriz com ${Math.pow(3, factors.filter(f => f.data_type === DataTypeEnum.quantitative).length) * factors.filter(f => f.data_type === DataTypeEnum.categorical).reduce((acc, f) => acc * f.levels_config.levels.length, 1)} combinações (fatorial completo).`)) {
+    const totalCombinations = factors.reduce((acc, f) => {
+      const numLevels = Array.isArray(f.levels_config) ? f.levels_config.length : 0;
+      return acc * numLevels;
+    }, 1);
+
+    if (!confirm(`Gerar corridas experimentais para este experimento?\n\nSerá criada uma matriz com ${totalCombinations} combinações (fatorial completo).`)) {
       return;
     }
 
@@ -396,11 +401,13 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                           <div className="text-sm text-slate-600">
                             {factor.data_type === DataTypeEnum.quantitative ? (
                               <span className="font-mono">
-                                Níveis: {factor.levels_config?.low} (baixo) → {factor.levels_config?.center} (centro) → {factor.levels_config?.high} (alto)
+                                Níveis: {Array.isArray(factor.levels_config) 
+                                  ? factor.levels_config.join('; ')
+                                  : `${factor.levels_config?.low} (baixo) → ${factor.levels_config?.center} (centro) → ${factor.levels_config?.high} (alto)`}
                               </span>
                             ) : (
                               <span>
-                                Níveis: {factor.levels_config?.levels?.join(', ')}
+                                Níveis: {Array.isArray(factor.levels_config) ? factor.levels_config.join('; ') : ''}
                               </span>
                             )}
                           </div>

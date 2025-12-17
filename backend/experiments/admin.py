@@ -2,6 +2,22 @@ from django.contrib import admin
 from .models import Experiment, Factor, ResponseVariable, ExperimentRun
 
 
+class FactorInline(admin.TabularInline):
+    model = Factor
+    extra = 0
+    fields = ['symbol', 'name', 'data_type', 'precision', 'levels_config']
+    readonly_fields = ['created_at']
+    show_change_link = True
+
+
+class ResponseVariableInline(admin.TabularInline):
+    model = ResponseVariable
+    extra = 0
+    fields = ['name', 'unit', 'optimization_goal']
+    readonly_fields = ['created_at']
+    show_change_link = True
+
+
 @admin.register(Experiment)
 class ExperimentAdmin(admin.ModelAdmin):
     list_display = ['title', 'slug', 'design_type', 'status', 'owner', 'created_at']
@@ -10,6 +26,7 @@ class ExperimentAdmin(admin.ModelAdmin):
     readonly_fields = ['slug', 'created_at', 'updated_at']
     list_per_page = 20
     date_hierarchy = 'created_at'
+    inlines = [FactorInline, ResponseVariableInline]
     
     fieldsets = (
         ('Informações Básicas', {
