@@ -143,7 +143,9 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   const groupedCombinations: CombinationGroup[] = [];
   const combinationMap = new Map<number, CombinationGroup>();
 
+  console.log('Total runs:', runs.length);
   runs.forEach((run) => {
+    console.log('Run:', run.id, 'Standard Order:', run.standard_order, 'Replicate:', run.replicate_number);
     if (!combinationMap.has(run.standard_order)) {
       combinationMap.set(run.standard_order, {
         standard_order: run.standard_order,
@@ -163,6 +165,8 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   });
 
   groupedCombinations.push(...Array.from(combinationMap.values()).sort((a, b) => a.standard_order - b.standard_order));
+  console.log('Grouped combinations:', groupedCombinations.length);
+  console.log('First group:', groupedCombinations[0]);
 
   if (loading) {
     return (
