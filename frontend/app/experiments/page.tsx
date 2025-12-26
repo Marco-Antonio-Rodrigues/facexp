@@ -19,12 +19,12 @@ const STATUS_LABELS: Record<StatusEnum, string> = {
 };
 
 const STATUS_COLORS: Record<StatusEnum, string> = {
-  [StatusEnum.draft]: 'bg-slate-100 text-slate-700',
-  [StatusEnum.design_ready]: 'bg-blue-100 text-blue-700',
-  [StatusEnum.data_collection]: 'bg-amber-100 text-amber-700',
-  [StatusEnum.analysis_ready]: 'bg-purple-100 text-purple-700',
-  [StatusEnum.completed]: 'bg-emerald-100 text-emerald-700',
-  [StatusEnum.archived]: 'bg-gray-100 text-gray-600',
+  [StatusEnum.draft]: 'bg-muted text-muted-foreground border border-border',
+  [StatusEnum.design_ready]: 'bg-blue-500/20 text-blue-400 border border-blue-500/40',
+  [StatusEnum.data_collection]: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
+  [StatusEnum.analysis_ready]: 'bg-purple-500/20 text-purple-400 border border-purple-500/40',
+  [StatusEnum.completed]: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
+  [StatusEnum.archived]: 'bg-muted/50 text-muted-foreground/70 border border-border',
 };
 
 const DESIGN_TYPE_LABELS: Record<DesignTypeEnum, string> = {
@@ -77,39 +77,39 @@ export default function ExperimentsPage() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-slate-600 font-mono text-sm">Carregando experimentos...</p>
+          <p className="mt-4 text-muted-foreground font-mono text-sm">Carregando experimentos...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="text-3xl">🧪</div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">Facexp</h1>
-                <p className="text-sm text-slate-600 font-mono">Design of Experiments</p>
+                <h1 className="text-2xl font-bold text-foreground">Facexp</h1>
+                <p className="text-sm text-muted-foreground font-mono">Design of Experiments</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-slate-900">{user?.name}</p>
-                <p className="text-xs text-slate-600">{user?.email}</p>
+                <p className="text-sm font-medium text-foreground">{user?.name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               <Button
                 onClick={async () => {
                   await logout();
                   router.push('/login');
                 }}
-                className="bg-slate-200 text-slate-700 hover:bg-slate-300"
+                className="bg-muted text-foreground hover:bg-muted/80"
               >
                 Sair
               </Button>
@@ -124,10 +124,10 @@ export default function ExperimentsPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-2">
+              <h2 className="text-3xl font-bold text-foreground mb-2">
                 Meus Experimentos
               </h2>
-              <p className="text-slate-600">
+              <p className="text-muted-foreground">
                 Gerencie seus experimentos fatoriais e análises estatísticas
               </p>
             </div>
@@ -150,13 +150,13 @@ export default function ExperimentsPage() {
 
         {/* Experiments Grid */}
         {experiments.length === 0 ? (
-          <Card className="border-dashed border-2 border-slate-300">
+          <Card className="border-dashed border-2 border-border">
             <CardContent className="py-16 text-center">
               <div className="text-6xl mb-4">🧬</div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 Nenhum experimento ainda
               </h3>
-              <p className="text-slate-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Comece criando seu primeiro experimento fatorial
               </p>
               <Button
@@ -172,7 +172,7 @@ export default function ExperimentsPage() {
             {experiments.map((experiment) => (
               <Card
                 key={experiment.id}
-                className="hover:shadow-xl transition-all duration-300 cursor-pointer border-slate-200 bg-white"
+                className="hover:shadow-xl transition-all duration-300 cursor-pointer"
                 onClick={() => router.push(`/experiments/${experiment.slug}`)}
               >
                 <CardHeader>
@@ -180,23 +180,23 @@ export default function ExperimentsPage() {
                     <span className={`px-2 py-1 rounded text-xs font-mono font-semibold ${experiment.status ? STATUS_COLORS[experiment.status] : ''}`}>
                       {experiment.status ? STATUS_LABELS[experiment.status] : 'N/A'}
                     </span>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="text-xs text-muted-foreground font-mono">
                       {formatDate(experiment.updated_at)}
                     </span>
                   </div>
-                  <CardTitle className="text-xl text-slate-900 line-clamp-2">
+                  <CardTitle className="text-xl line-clamp-2">
                     {experiment.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-slate-500">Tipo:</span>
+                      <span className="text-muted-foreground">Tipo:</span>
                       <span className="font-mono text-science-700 font-semibold">
                         {experiment.design_type ? DESIGN_TYPE_LABELS[experiment.design_type] : 'N/A'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span>📅</span>
                       <span className="font-mono text-xs">
                         Criado em {formatDate(experiment.created_at)}

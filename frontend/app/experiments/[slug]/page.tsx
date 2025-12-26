@@ -27,12 +27,12 @@ const DESIGN_TYPE_LABELS: Record<DesignTypeEnum, string> = {
 };
 
 const STATUS_COLORS: Record<StatusEnum, string> = {
-  [StatusEnum.draft]: 'bg-slate-100 text-slate-700 border-slate-300',
-  [StatusEnum.design_ready]: 'bg-blue-100 text-blue-700 border-blue-300',
-  [StatusEnum.data_collection]: 'bg-amber-100 text-amber-700 border-amber-300',
-  [StatusEnum.analysis_ready]: 'bg-purple-100 text-purple-700 border-purple-300',
-  [StatusEnum.completed]: 'bg-emerald-100 text-emerald-700 border-emerald-300',
-  [StatusEnum.archived]: 'bg-gray-100 text-gray-700 border-gray-300',
+  [StatusEnum.draft]: 'bg-muted text-muted-foreground border border-border',
+  [StatusEnum.design_ready]: 'bg-blue-500/20 text-blue-400 border border-blue-500/40',
+  [StatusEnum.data_collection]: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
+  [StatusEnum.analysis_ready]: 'bg-purple-500/20 text-purple-400 border border-purple-500/40',
+  [StatusEnum.completed]: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
+  [StatusEnum.archived]: 'bg-muted/50 text-muted-foreground/70 border border-border',
 };
 
 export default function ExperimentDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -276,21 +276,21 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 onClick={() => router.push('/experiments')}
-                className="bg-slate-200 text-slate-700 hover:bg-slate-300"
+                className="bg-muted text-foreground hover:bg-muted/80"
               >
                 ← Voltar
               </Button>
               <div className="flex items-center gap-2">
                 <div className="text-2xl">🧪</div>
-                <h1 className="text-xl font-bold text-slate-900">{experiment.title}</h1>
+                <h1 className="text-xl font-bold text-foreground">{experiment.title}</h1>
               </div>
             </div>
             <div className={`px-3 py-1 rounded-full border font-mono text-xs font-semibold ${STATUS_COLORS[experiment.status]}`}>
@@ -305,45 +305,45 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Info Principal */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-slate-200 shadow-lg">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-xl text-slate-900">Informações do Experimento</CardTitle>
+                <CardTitle className="text-xl">Informações do Experimento</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-1">Descrição</h3>
-                  <p className="text-slate-600">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Descrição</h3>
+                  <p className="text-foreground">
                     {experiment.description || 'Sem descrição'}
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-700 mb-1">Tipo de Design</h3>
-                    <p className="text-slate-900 font-mono">{DESIGN_TYPE_LABELS[experiment.design_type]}</p>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Tipo de Design</h3>
+                    <p className="text-foreground font-mono">{DESIGN_TYPE_LABELS[experiment.design_type]}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-700 mb-1">Status</h3>
-                    <p className="text-slate-900 font-mono">{STATUS_LABELS[experiment.status]}</p>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Status</h3>
+                    <p className="text-foreground font-mono">{STATUS_LABELS[experiment.status]}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-700 mb-1">Repetições</h3>
-                    <p className="text-slate-900 font-mono">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Repetições</h3>
+                    <p className="text-foreground font-mono">
                       {experiment.replicates || 1} {experiment.replicates === 1 ? 'réplica' : 'réplicas'}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Cada combinação será executada {experiment.replicates || 1} {experiment.replicates === 1 ? 'vez' : 'vezes'}
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-700 mb-1">Criado em</h3>
-                    <p className="text-slate-600">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Criado em</h3>
+                    <p className="text-muted-foreground">
                       {new Date(experiment.created_at).toLocaleString('pt-BR', {
                         day: '2-digit',
                         month: 'long',
@@ -354,8 +354,8 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-700 mb-1">Atualizado em</h3>
-                    <p className="text-slate-600">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Atualizado em</h3>
+                    <p className="text-muted-foreground">
                       {new Date(experiment.updated_at).toLocaleString('pt-BR', {
                         day: '2-digit',
                         month: 'long',
@@ -370,10 +370,10 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
             </Card>
 
             {/* Fatores */}
-            <Card className="border-slate-200 shadow-lg">
+            <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl text-slate-900">Fatores</CardTitle>
+                  <CardTitle className="text-xl">Fatores</CardTitle>
                   <Button 
                     onClick={() => {
                       setEditingFactor(null);
@@ -387,7 +387,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
               </CardHeader>
               <CardContent>
                 {factors.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     Nenhum fator cadastrado ainda
                   </div>
                 ) : (
@@ -395,18 +395,18 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     {factors.map((factor) => (
                       <div
                         key={factor.id}
-                        className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-semibold text-slate-900">{factor.name}</h4>
-                            <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs font-mono rounded">
+                            <h4 className="font-semibold text-foreground">{factor.name}</h4>
+                            <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-mono rounded">
                               {factor.symbol}
                             </span>
                             <span className={`px-2 py-1 text-xs font-semibold rounded ${
                               factor.data_type === DataTypeEnum.quantitative
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-purple-100 text-purple-700'
+                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                                : 'bg-purple-500/20 text-purple-400 border border-purple-500/40'
                             }`}>
                               {factor.data_type === DataTypeEnum.quantitative ? 'Quantitativo' : 'Categórico'}
                             </span>
@@ -447,7 +447,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                               setEditingFactor(factor);
                               setShowFactorModal(true);
                             }}
-                            className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-3 py-1 text-sm"
+                            className="bg-muted text-foreground hover:bg-muted/80 px-3 py-1 text-sm"
                           >
                             ✏️
                           </Button>
@@ -466,10 +466,10 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
             </Card>
 
             {/* Variáveis de Resposta */}
-            <Card className="border-slate-200 shadow-lg">
+            <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl text-slate-900">Variáveis de Resposta</CardTitle>
+                  <CardTitle className="text-xl">Variáveis de Resposta</CardTitle>
                   <Button 
                     onClick={() => {
                       setEditingResponseVar(null);
@@ -483,7 +483,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
               </CardHeader>
               <CardContent>
                 {responseVariables.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     Nenhuma variável de resposta cadastrada ainda
                   </div>
                 ) : (
@@ -491,24 +491,24 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     {responseVariables.map((responseVar) => (
                       <div
                         key={responseVar.id}
-                        className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-semibold text-slate-900">{responseVar.name}</h4>
+                            <h4 className="font-semibold text-foreground">{responseVar.name}</h4>
                             {responseVar.unit && (
-                              <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs font-mono rounded">
+                              <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-mono rounded">
                                 {responseVar.unit}
                               </span>
                             )}
                             <span className={`px-2 py-1 text-xs font-semibold rounded ${
                               responseVar.optimization_goal === OptimizationGoalEnum.maximize
-                                ? 'bg-emerald-100 text-emerald-700'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                                 : responseVar.optimization_goal === OptimizationGoalEnum.minimize
-                                ? 'bg-blue-100 text-blue-700'
+                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
                                 : responseVar.optimization_goal === OptimizationGoalEnum.target
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-slate-100 text-slate-700'
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                                : 'bg-muted text-muted-foreground border border-border'
                             }`}>
                               {responseVar.optimization_goal === OptimizationGoalEnum.maximize && '📈 Maximizar'}
                               {responseVar.optimization_goal === OptimizationGoalEnum.minimize && '📉 Minimizar'}
@@ -523,7 +523,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                               setEditingResponseVar(responseVar);
                               setShowResponseVarModal(true);
                             }}
-                            className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-3 py-1 text-sm"
+                            className="bg-muted text-foreground hover:bg-muted/80 px-3 py-1 text-sm"
                           >
                             ✏️
                           </Button>
@@ -545,9 +545,9 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Ações Rápidas */}
-            <Card className="border-slate-200 shadow-lg">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-slate-900">Ações</CardTitle>
+                <CardTitle className="text-lg">Ações</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button 
@@ -572,7 +572,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                 </Button>
                 <Button 
                   onClick={() => router.push(`/experiments/${slug}/runs`)}
-                  className="w-full bg-slate-200 text-slate-700 hover:bg-slate-300"
+                  className="w-full bg-muted text-foreground hover:bg-muted/80"
                 >
                   📊 Ver Corridas
                 </Button>
@@ -586,13 +586,13 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
             </Card>
 
             {/* Info Card */}
-            <Card className="border-slate-200 bg-blue-50/50">
+            <Card className="bg-primary/5 border-primary/20">
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
                   <div className="text-2xl">💡</div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Próximos Passos</h3>
-                    <ul className="text-sm text-slate-600 space-y-2">
+                    <h3 className="font-semibold text-foreground mb-2">Próximos Passos</h3>
+                    <ul className="text-sm text-muted-foreground space-y-2">
                       <li>1. Adicione fatores (variáveis independentes)</li>
                       <li>2. Adicione variáveis de resposta</li>
                       <li>3. Gere as corridas experimentais</li>

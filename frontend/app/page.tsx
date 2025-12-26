@@ -27,26 +27,26 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background px-4">
       <div className="text-center max-w-3xl">
         {/* Logo/Brand */}
         <div className="mb-8">
-          <h1 className="text-6xl font-bold tracking-tight text-slate-900 mb-2">
+          <h1 className="text-6xl font-bold tracking-tight text-foreground mb-2">
             Facexp
           </h1>
           <div className="flex items-center justify-center gap-2 text-sm font-mono">
-            <span className="px-3 py-1.5 rounded-md bg-science-500/20 text-science-800 font-semibold border border-science-500/30">
+            <span className="px-3 py-1.5 rounded-md bg-primary/20 text-primary font-semibold border border-primary/30">
               Design of Experiments
             </span>
-            <span className="text-slate-400">•</span>
-            <span className="text-slate-700 font-medium">DOE Platform</span>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-foreground font-medium">DOE Platform</span>
           </div>
         </div>
 
         {/* Hero Text */}
-        <p className="text-xl text-slate-700 mb-12 leading-relaxed">
+        <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
           Plataforma profissional para planejamento, execução e análise de
-          <span className="font-bold text-slate-900"> experimentos fatoriais</span>.
+          <span className="font-bold text-foreground"> experimentos fatoriais</span>.
           Otimize processos com metodologia científica.
         </p>
         
@@ -67,26 +67,26 @@ export default function Home() {
         </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-6 bg-white rounded-lg shadow-lg border border-slate-200 hover:shadow-xl transition-shadow">
+          <div className="p-6 bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <div className="text-3xl mb-3">🧪</div>
-            <h3 className="font-bold text-slate-900 mb-2 text-lg">Design of Experiments</h3>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <h3 className="font-bold text-card-foreground mb-2 text-lg">Design of Experiments</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Crie e gerencie experimentos fatoriais com interface intuitiva
             </p>
           </div>
           
-          <div className="p-6 bg-white rounded-lg shadow-lg border border-slate-200 hover:shadow-xl transition-shadow">
+          <div className="p-6 bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <div className="text-3xl mb-3">📊</div>
-            <h3 className="font-bold text-slate-900 mb-2 text-lg">Análise Estatística</h3>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <h3 className="font-bold text-card-foreground mb-2 text-lg">Análise Estatística</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Analise resultados com ferramentas estatísticas avançadas
             </p>
           </div>
           
-          <div className="p-6 bg-white rounded-lg shadow-lg border border-slate-200 hover:shadow-xl transition-shadow">
+          <div className="p-6 bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <div className="text-3xl mb-3">🔬</div>
-            <h3 className="font-bold text-slate-900 mb-2 text-lg">Metodologia Científica</h3>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <h3 className="font-bold text-card-foreground mb-2 text-lg">Metodologia Científica</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Baseado em metodologias comprovadas de DOE fatorial
             </p>
           </div>
