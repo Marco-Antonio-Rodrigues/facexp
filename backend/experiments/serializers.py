@@ -314,6 +314,8 @@ class ExperimentRunListSerializer(serializers.ModelSerializer):
             'run_order',
             'replicate_number',
             'is_center_point',
+            'factor_values',
+            'response_values',
             'is_excluded',
             'has_responses',
             'is_complete',

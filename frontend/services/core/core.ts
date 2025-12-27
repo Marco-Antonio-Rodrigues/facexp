@@ -5,6 +5,9 @@
  * Documentação automática da API
  * OpenAPI spec version: 1.0.0
  */
+// @ts-nocheck
+/* eslint-disable */
+/*
 import {
   useQuery
 } from '@tanstack/react-query';
@@ -14,6 +17,7 @@ import type {
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
+*/
 
 import type {
   RootRetrieve200

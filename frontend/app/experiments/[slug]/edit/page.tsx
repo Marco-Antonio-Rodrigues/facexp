@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Experiment, DesignTypeEnum, StatusEnum } from '@/types';
+import { DesignTypeEnum, StatusEnum } from '@/types';
 
 const DESIGN_TYPE_OPTIONS = [
   { value: DesignTypeEnum.full_factorial, label: 'Fatorial Completo' },
@@ -24,33 +27,84 @@ const STATUS_OPTIONS = [
   { value: StatusEnum.archived, label: 'Arquivado' },
 ];
 
-interface FormData {
+// Schema de validação com Zod
+const experimentSchema = z.object({
+  title: z.string()
+    .min(1, 'Título é obrigatório')
+    .max(200, 'Título deve ter no máximo 200 caracteres'),
+  description: z.string().optional(),
+  design_type: z.enum(['full_factorial', 'fractional_factorial', 'plackett_burman', 'box_behnken', 'central_composite']),
+  replicates: z.number()
+    .int('O valor deve ser um número inteiro')
+    .min(1, 'O número mínimo de repetições é 1')
+    .max(100, 'O número máximo de repetições é 100'),
+});
+
+type ExperimentFormData = {
   title: string;
-  description: string;
-  design_type: DesignTypeEnum;
+  description?: string;
+  design_type: 'full_factorial' | 'fractional_factorial' | 'plackett_burman' | 'box_behnken' | 'central_composite';
   replicates: number;
-}
+};
 
 export default function EditExperimentPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [slug, setSlug] = useState<string>('');
+  const [hasRuns, setHasRuns] = useState(false);
+  const [originalReplicates, setOriginalReplicates] = useState(1);
   
-  const [formData, setFormData] = useState<FormData>({
-    title: '',
-    description: '',
-    design_type: DesignTypeEnum.full_factorial,
-    replicates: 1,
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<ExperimentFormData>({
+    resolver: zodResolver(experimentSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      design_type: DesignTypeEnum.full_factorial,
+      replicates: 1,
+    },
   });
+
+  const currentReplicates = watch('replicates');
 
   useEffect(() => {
     params.then(p => {
       setSlug(p.slug);
       fetchExperiment(p.slug);
+      checkHasRuns(p.slug);
     });
   }, []);
+
+  const checkHasRuns = async (experimentSlug: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/runs/?page_size=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const hasAnyRuns = Array.isArray(data) 
+          ? data.length > 0 
+          : (data.count !== undefined ? data.count > 0 : (Array.isArray(data.results) ? data.results.length > 0 : false));
+        
+        setHasRuns(hasAnyRuns);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar corridas:', err);
+    }
+  };
 
   const fetchExperiment = async (experimentSlug: string) => {
     try {
@@ -68,13 +122,13 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
         throw new Error('Erro ao carregar experimento');
       }
 
-      const data: Experiment = await response.json();
-      setFormData({
-        title: data.title,
-        description: data.description,
-        design_type: data.design_type,
-        replicates: data.replicates || 1,
-      });
+      const data = await response.json();
+      // Atualiza os valores do formulário
+      setValue('title', data.title);
+      setValue('description', data.description || '');
+      setValue('design_type', data.design_type);
+      setValue('replicates', data.replicates || 1);
+      setOriginalReplicates(data.replicates || 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar experimento');
     } finally {
@@ -82,22 +136,14 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
     }
   };
 
-  const handleChange = (field: keyof FormData, value: string) => {
-    // Converte para número se for o campo replicates
-    const finalValue = field === 'replicates' ? parseInt(value) || 1 : value;
-    setFormData(prev => ({ ...prev, [field]: finalValue }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: ExperimentFormData) => {
     setError('');
-    
-    if (!formData.title.trim()) {
-      setError('Título é obrigatório');
+
+    // Valida se está tentando alterar replicates com runs existentes
+    if (hasRuns && data.replicates !== originalReplicates) {
+      setError('⚠️ Não é possível alterar o número de repetições quando há corridas experimentais criadas. Delete todas as corridas primeiro e depois recrie com o novo número de repetições.');
       return;
     }
-
-    setIsSaving(true);
 
     try {
       const token = localStorage.getItem('access_token');
@@ -109,7 +155,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(data),
         }
       );
 
@@ -121,8 +167,6 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
       router.push(`/experiments/${slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar experimento');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -134,7 +178,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
     );
   }
 
-  if (error && !formData.title) {
+  if (error && slug === '') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100 flex items-center justify-center">
         <Card className="max-w-md border-destructive/30">
@@ -188,7 +232,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Título */}
               <div>
                 <label htmlFor="title" className="block text-sm font-semibold text-slate-900 mb-2">
@@ -197,15 +241,18 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
                 <Input
                   id="title"
                   type="text"
-                  value={formData.title}
-                  onChange={(e) => handleChange('title', e.target.value)}
+                  {...register('title')}
                   placeholder="Ex: Otimização do processo de fermentação"
-                  required
-                  className="w-full"
+                  className={`w-full ${errors.title ? 'border-destructive' : ''}`}
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  Nome descritivo e único para identificar seu experimento
-                </p>
+                {errors.title && (
+                  <p className="text-xs text-destructive mt-1">{errors.title.message}</p>
+                )}
+                {!errors.title && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Nome descritivo e único para identificar seu experimento
+                  </p>
+                )}
               </div>
 
               {/* Descrição */}
@@ -215,8 +262,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
                 </label>
                 <textarea
                   id="description"
-                  value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
+                  {...register('description')}
                   placeholder="Descreva o objetivo e contexto do experimento..."
                   rows={4}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -233,8 +279,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
                 </label>
                 <select
                   id="design_type"
-                  value={formData.design_type}
-                  onChange={(e) => handleChange('design_type', e.target.value as DesignTypeEnum)}
+                  {...register('design_type')}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-mono"
                 >
                   {DESIGN_TYPE_OPTIONS.map((option) => (
@@ -251,30 +296,50 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
               {/* Número de Repetições */}
               <div>
                 <label htmlFor="replicates" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Número de Repetições (Réplicas)
+                  Número de Repetições (Réplicas) *
                 </label>
                 <Input
                   id="replicates"
                   type="number"
                   min="1"
-                  max="10"
-                  value={formData.replicates}
-                  onChange={(e) => handleChange('replicates', e.target.value)}
-                  className="w-full font-mono"
+                  max="100"
+                  step="1"
+                  {...register('replicates', { valueAsNumber: true })}
+                  placeholder="Digite um número entre 1 e 100"
+                  className={`w-full font-mono ${errors.replicates ? 'border-destructive focus:ring-destructive' : ''} ${hasRuns && currentReplicates !== originalReplicates ? 'border-amber-500 bg-amber-50' : ''}`}
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  Número de vezes que cada combinação será executada (mínimo 1)
-                </p>
+                {errors.replicates && (
+                  <p className="text-sm text-destructive mt-1 font-medium">
+                    ⚠️ {errors.replicates.message}
+                  </p>
+                )}
+                {hasRuns && currentReplicates !== originalReplicates && (
+                  <div className="mt-2 p-3 bg-amber-100 border border-amber-400 rounded-lg">
+                    <p className="text-sm text-amber-900 font-medium flex items-start gap-2">
+                      <span className="text-lg">⚠️</span>
+                      <span>
+                        <strong>Atenção:</strong> Você está alterando o número de repetições, mas já existem corridas criadas. 
+                        Para alterar este valor, você precisa primeiro <strong>deletar todas as corridas</strong> na página do experimento 
+                        e depois recriá-las com o novo número de repetições.
+                      </span>
+                    </p>
+                  </div>
+                )}
+                {!errors.replicates && (!hasRuns || currentReplicates === originalReplicates) && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Número de vezes que cada combinação será executada (1 a 100)
+                  </p>
+                )}
               </div>
 
               {/* Actions */}
               <div className="flex items-center gap-4 pt-4 border-t border-slate-200">
                 <Button
                   type="submit"
-                  disabled={isSaving || !formData.title.trim()}
+                  disabled={isSubmitting}
                   className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
-                  {isSaving ? (
+                  {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Salvando...
@@ -289,7 +354,7 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
                 <Button
                   type="button"
                   onClick={() => router.push(`/experiments/${slug}`)}
-                  disabled={isSaving}
+                  disabled={isSubmitting}
                   className="bg-slate-200 text-slate-700 hover:bg-slate-300"
                 >
                   Cancelar

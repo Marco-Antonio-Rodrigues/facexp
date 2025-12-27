@@ -19,7 +19,7 @@ export function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-foreground mb-1"
         >
           {label}
         </label>
@@ -27,18 +27,18 @@ export function Input({
       <input
         id={inputId}
         className={`
-          w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-900 font-medium
-          placeholder:text-gray-500 placeholder:font-normal
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500
+          w-full px-4 py-2.5 border-2 rounded-lg bg-input text-foreground font-medium
+          placeholder:text-muted-foreground placeholder:font-normal
+          focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary
+          disabled:bg-muted disabled:cursor-not-allowed disabled:text-muted-foreground
           transition-colors
-          ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}
+          ${error ? 'border-destructive focus:ring-destructive' : 'border-input-border'}
           ${className}
         `}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-sm text-destructive">{error}</p>
       )}
     </div>
   );

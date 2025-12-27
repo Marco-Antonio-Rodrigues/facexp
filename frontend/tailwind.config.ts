@@ -4,7 +4,7 @@ import tailwindAnimate from "tailwindcss-animate"
 
 const config = {
   // Habilita o dark mode via classe CSS (essencial para Shadcn)
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',

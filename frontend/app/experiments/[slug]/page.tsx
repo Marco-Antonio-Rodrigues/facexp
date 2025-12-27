@@ -5,9 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Experiment, StatusEnum, DesignTypeEnum, FactorDetail, DataTypeEnum, ResponseVariableDetail, OptimizationGoalEnum } from '@/types';
+import { ExperimentDetail, StatusEnum, DesignTypeEnum, FactorDetail, DataTypeEnum, ResponseVariableDetail, OptimizationGoalEnum } from '@/types';
 import FactorModal from '@/components/FactorModal';
 import ResponseVariableModal from '@/components/ResponseVariableModal';
+
+// Tipos auxiliares para levels_config
+type QuantitativeLevelsConfig = { low: number; center: number; high: number };
+type CategoricalLevelsConfig = string[];
 
 const STATUS_LABELS: Record<StatusEnum, string> = {
   [StatusEnum.draft]: 'Rascunho',
@@ -37,7 +41,7 @@ const STATUS_COLORS: Record<StatusEnum, string> = {
 
 export default function ExperimentDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
-  const [experiment, setExperiment] = useState<Experiment | null>(null);
+  const [experiment, setExperiment] = useState<ExperimentDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [slug, setSlug] = useState<string>('');
@@ -52,6 +56,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
   const [editingResponseVar, setEditingResponseVar] = useState<ResponseVariableDetail | null>(null);
   const [deletingResponseVarId, setDeletingResponseVarId] = useState<number | null>(null);
   const [isGeneratingRuns, setIsGeneratingRuns] = useState(false);
+  const [hasRuns, setHasRuns] = useState(false);
 
   useEffect(() => {
     params.then(p => {
@@ -59,8 +64,34 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
       fetchExperiment(p.slug);
       fetchFactors(p.slug);
       fetchResponseVariables(p.slug);
+      checkHasRuns(p.slug);
     });
   }, []);
+
+  const checkHasRuns = async (experimentSlug: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/runs/?page_size=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const hasAnyRuns = Array.isArray(data) 
+          ? data.length > 0 
+          : (data.count !== undefined ? data.count > 0 : (Array.isArray(data.results) ? data.results.length > 0 : false));
+        
+        setHasRuns(hasAnyRuns);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar corridas:', err);
+    }
+  };
 
   const fetchExperiment = async (experimentSlug: string) => {
     try {
@@ -243,6 +274,9 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
       const data = await response.json();
       alert(data.detail);
       
+      // Atualiza o estado hasRuns para true
+      setHasRuns(true);
+      
       // Redireciona para a página de runs
       router.push(`/experiments/${slug}/runs`);
     } catch (err) {
@@ -293,8 +327,8 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                 <h1 className="text-xl font-bold text-foreground">{experiment.title}</h1>
               </div>
             </div>
-            <div className={`px-3 py-1 rounded-full border font-mono text-xs font-semibold ${STATUS_COLORS[experiment.status]}`}>
-              {STATUS_LABELS[experiment.status]}
+            <div className={`px-3 py-1 rounded-full border font-mono text-xs font-semibold ${STATUS_COLORS[experiment.status ?? StatusEnum.draft]}`}>
+              {STATUS_LABELS[experiment.status ?? StatusEnum.draft]}
             </div>
           </div>
         </div>
@@ -320,11 +354,11 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Tipo de Design</h3>
-                    <p className="text-foreground font-mono">{DESIGN_TYPE_LABELS[experiment.design_type]}</p>
+                    <p className="text-foreground font-mono">{DESIGN_TYPE_LABELS[experiment.design_type ?? DesignTypeEnum.full_factorial]}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Status</h3>
-                    <p className="text-foreground font-mono">{STATUS_LABELS[experiment.status]}</p>
+                    <p className="text-foreground font-mono">{STATUS_LABELS[experiment.status ?? StatusEnum.draft]}</p>
                   </div>
                 </div>
 
@@ -414,7 +448,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                           <div className="flex flex-wrap gap-2 mt-2">
                             {factor.data_type === DataTypeEnum.quantitative ? (
                               Array.isArray(factor.levels_config) ? (
-                                factor.levels_config.map((level, idx) => (
+                                (factor.levels_config as number[]).map((level, idx) => (
                                   <Badge key={idx} variant="quantitative" className="font-mono">
                                     {level}
                                   </Badge>
@@ -422,18 +456,18 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                               ) : (
                                 <>
                                   <Badge variant="quantitative" className="font-mono">
-                                    {factor.levels_config?.low} <span className="text-xs ml-1">(baixo)</span>
+                                    {(factor.levels_config as QuantitativeLevelsConfig)?.low} <span className="text-xs ml-1">(baixo)</span>
                                   </Badge>
                                   <Badge variant="quantitative" className="font-mono">
-                                    {factor.levels_config?.center} <span className="text-xs ml-1">(centro)</span>
+                                    {(factor.levels_config as QuantitativeLevelsConfig)?.center} <span className="text-xs ml-1">(centro)</span>
                                   </Badge>
                                   <Badge variant="quantitative" className="font-mono">
-                                    {factor.levels_config?.high} <span className="text-xs ml-1">(alto)</span>
+                                    {(factor.levels_config as QuantitativeLevelsConfig)?.high} <span className="text-xs ml-1">(alto)</span>
                                   </Badge>
                                 </>
                               )
                             ) : (
-                              Array.isArray(factor.levels_config) && factor.levels_config.map((level, idx) => (
+                              Array.isArray(factor.levels_config) && (factor.levels_config as CategoricalLevelsConfig).map((level, idx) => (
                                 <Badge key={idx} variant="categorical">
                                   {level}
                                 </Badge>
@@ -556,26 +590,29 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                 >
                   ✏️ Editar
                 </Button>
-                <Button 
-                  onClick={handleGenerateRuns}
-                  disabled={isGeneratingRuns || factors.length === 0}
-                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGeneratingRuns ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                      Gerando...
-                    </>
-                  ) : (
-                    <>▶️ Gerar Corridas</>
-                  )}
-                </Button>
-                <Button 
-                  onClick={() => router.push(`/experiments/${slug}/runs`)}
-                  className="w-full bg-muted text-foreground hover:bg-muted/80"
-                >
-                  📊 Ver Corridas
-                </Button>
+                {!hasRuns ? (
+                  <Button 
+                    onClick={handleGenerateRuns}
+                    disabled={isGeneratingRuns || factors.length === 0}
+                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGeneratingRuns ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                        Gerando...
+                      </>
+                    ) : (
+                      <>▶️ Gerar Corridas</>
+                    )}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => router.push(`/experiments/${slug}/runs`)}
+                    className="w-full bg-muted text-foreground hover:bg-muted/80"
+                  >
+                    📊 Ver Corridas
+                  </Button>
+                )}
                 <Button 
                   onClick={() => setShowDeleteModal(true)}
                   className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20"
@@ -666,9 +703,9 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
           id: editingFactor.id,
           name: editingFactor.name,
           symbol: editingFactor.symbol,
-          data_type: editingFactor.data_type,
-          precision: editingFactor.precision,
-          levels_config: editingFactor.levels_config
+          data_type: editingFactor.data_type ?? DataTypeEnum.quantitative,
+          precision: editingFactor.precision ?? 2,
+          levels_config: editingFactor.levels_config as string[] | number[]
         } : undefined}
       />
 
@@ -720,8 +757,8 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
         editData={editingResponseVar ? {
           id: editingResponseVar.id,
           name: editingResponseVar.name,
-          unit: editingResponseVar.unit,
-          optimization_goal: editingResponseVar.optimization_goal
+          unit: editingResponseVar.unit ?? '',
+          optimization_goal: editingResponseVar.optimization_goal ?? OptimizationGoalEnum.maximize
         } : undefined}
       />
 

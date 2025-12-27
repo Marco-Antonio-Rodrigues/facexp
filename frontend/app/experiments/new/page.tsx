@@ -20,13 +20,13 @@ export default function NewExperimentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [formData, setFormData] = useState<ExperimentCreate>({
+  const [formData, setFormData] = useState<Omit<ExperimentCreate, 'slug'>>({
     title: '',
     description: '',
     design_type: DesignTypeEnum.full_factorial,
   });
 
-  const handleChange = (field: keyof ExperimentCreate, value: string) => {
+  const handleChange = (field: keyof Omit<ExperimentCreate, 'slug'>, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

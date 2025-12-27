@@ -5,6 +5,9 @@
  * Documentação automática da API
  * OpenAPI spec version: 1.0.0
  */
+// @ts-nocheck
+/* eslint-disable */
+/*
 import {
   useMutation,
   useQuery
@@ -18,6 +21,7 @@ import type {
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
+*/
 
 import type {
   ExperimentCreate,

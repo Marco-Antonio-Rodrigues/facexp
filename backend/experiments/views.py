@@ -202,7 +202,9 @@ class ExperimentViewSet(viewsets.ModelViewSet):
         random.shuffle(run_orders)  # Randomiza a ordem de execução
         
         run_index = 0
-        for std_order, combination in enumerate(combinations, start=1):
+        std_order = 1  # Contador contínuo para standard_order (único por run)
+        
+        for combination in combinations:
             # Cria réplicas para esta combinação
             for replicate_num in range(1, replicates + 1):
                 # Monta o dicionário de valores dos fatores
@@ -232,6 +234,7 @@ class ExperimentViewSet(viewsets.ModelViewSet):
                 )
                 runs_created.append(run)
                 run_index += 1
+                std_order += 1  # Incrementa para o próximo run
         
         # Atualiza status do experimento para DESIGN_READY
         if experiment.status == Experiment.Status.DRAFT:
@@ -243,6 +246,38 @@ class ExperimentViewSet(viewsets.ModelViewSet):
             'detail': f'{len(runs_created)} runs generated successfully.',
             'runs': serializer.data
         }, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['delete'])
+    def delete_all_runs(self, request, slug=None):
+        """
+        Deleta todas as corridas do experimento.
+        """
+        from django.db import transaction
+        
+        experiment = self.get_object()
+        
+        # Conta quantas corridas existem
+        runs_count = experiment.runs.count()
+        
+        if runs_count == 0:
+            return Response(
+                {'detail': 'Experiment has no runs to delete.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Deleta todas as corridas dentro de uma transação (hard delete)
+        with transaction.atomic():
+            deleted_count, _ = experiment.runs.all().delete()
+            
+            # Atualiza status do experimento para DRAFT se estava em DESIGN_READY
+            if experiment.status == Experiment.Status.DESIGN_READY:
+                experiment.status = Experiment.Status.DRAFT
+                experiment.save()
+        
+        return Response({
+            'detail': f'{deleted_count} runs deleted successfully.',
+            'deleted_count': deleted_count
+        }, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['Experiments'])
@@ -302,6 +337,7 @@ class FactorViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """
         Cria o fator associado ao experimento.
+        Bloqueia se já existem corridas geradas.
         """
         experiment_slug = self.kwargs.get('experiment_slug')
         experiment = get_object_or_404(
@@ -309,7 +345,28 @@ class FactorViewSet(viewsets.ModelViewSet):
             slug=experiment_slug,
             owner=self.request.user
         )
+        
+        # Verifica se há corridas geradas
+        if ExperimentRun.objects.filter(experiment=experiment).exists():
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                'Não é possível adicionar fatores após gerar corridas. '
+                'Delete todas as corridas primeiro.'
+            )
+        
         serializer.save(experiment=experiment)
+    
+    def perform_destroy(self, instance):
+        """
+        Bloqueia deleção de fatores se há corridas geradas.
+        """
+        if ExperimentRun.objects.filter(experiment=instance.experiment).exists():
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                'Não é possível deletar fatores após gerar corridas. '
+                'Delete todas as corridas primeiro.'
+            )
+        instance.delete()
     
     @action(detail=True, methods=['post'])
     def duplicate(self, request, experiment_slug=None, pk=None):
@@ -451,6 +508,8 @@ class ResponseVariableViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """
         Cria a variável de resposta associada ao experimento.
+        Nota: Diferente de fatores, adicionar variáveis de resposta após gerar corridas é permitido,
+        pois não afeta a estrutura do design experimental.
         """
         experiment_slug = self.kwargs.get('experiment_slug')
         experiment = get_object_or_404(
@@ -459,6 +518,13 @@ class ResponseVariableViewSet(viewsets.ModelViewSet):
             owner=self.request.user
         )
         serializer.save(experiment=experiment)
+    
+    def perform_destroy(self, instance):
+        """
+        Permite deleção de variáveis de resposta mesmo com corridas,
+        pois apenas limpa os valores de resposta das corridas.
+        """
+        instance.delete()
     
     @action(detail=True, methods=['post'])
     def duplicate(self, request, experiment_slug=None, pk=None):

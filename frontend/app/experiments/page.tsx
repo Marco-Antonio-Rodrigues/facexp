@@ -170,11 +170,12 @@ export default function ExperimentsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {experiments.map((experiment) => (
-              <Card
-                key={experiment.id}
-                className="hover:shadow-xl transition-all duration-300 cursor-pointer"
+              <div 
+                key={experiment.id} 
+                className="cursor-pointer"
                 onClick={() => router.push(`/experiments/${experiment.slug}`)}
               >
+                <Card className="hover:shadow-xl transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2">
                     <span className={`px-2 py-1 rounded text-xs font-mono font-semibold ${experiment.status ? STATUS_COLORS[experiment.status] : ''}`}>
@@ -216,6 +217,7 @@ export default function ExperimentsPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             ))}
           </div>
         )}

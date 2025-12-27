@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import ExperimentRunsUpload from '@/components/ExperimentRunsUpload';
+import * as XLSX from 'xlsx';
 
 interface Factor {
   id: number;
   name: string;
   symbol: string;
   data_type: 'quantitative' | 'categorical';
+  levels_config?: unknown;
 }
 
 interface ResponseVariable {
@@ -46,6 +49,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   const [factors, setFactors] = useState<Factor[]>([]);
   const [responseVars, setResponseVars] = useState<ResponseVariable[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingRuns, setIsGeneratingRuns] = useState(false);
   const [editingRunId, setEditingRunId] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
   const [expandedCombination, setExpandedCombination] = useState<number | null>(null);
@@ -75,13 +79,32 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
         })
       ]);
       
-      setRuns(await runsRes.json());
-      setFactors(await factorsRes.json());
-      setResponseVars(await varsRes.json());
+      const runsData = await runsRes.json();
+      const factorsData = await factorsRes.json();
+      const varsData = await varsRes.json();
+      
+      setRuns(runsData);
+      setFactors(factorsData);
+      setResponseVars(varsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refetchRuns = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setRuns(await response.json());
+    } catch (error) {
+      console.error('Error refetching runs:', error);
     }
   };
 
@@ -114,7 +137,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
         }
       );
 
-      await fetchData(slug);
+      await refetchRuns();
       setEditingRunId(null);
       setEditValues({});
     } catch (error) {
@@ -123,32 +146,123 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
     }
   };
 
-  const handleToggleExclude = async (runId: number) => {
+  const handleDeleteRun = async (runId: number) => {
+    if (!confirm('Tem certeza que deseja deletar esta corrida permanentemente?')) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem('access_token');
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/${runId}/toggle_exclude/`,
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/${runId}/`,
         {
-          method: 'POST',
+          method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      await fetchData(slug);
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar corrida');
+      }
+
+      await refetchRuns();
     } catch (error) {
-      console.error('Error toggling exclude:', error);
+      console.error('Error deleting run:', error);
+      alert('Erro ao deletar corrida');
     }
   };
 
-  // Agrupa runs por combinação (standard_order)
+  const handleGenerateRuns = async () => {
+    if (factors.length === 0) {
+      alert('Adicione pelo menos um fator antes de gerar corridas!');
+      return;
+    }
+
+    const totalCombinations = factors.reduce((acc, f) => {
+      const numLevels = Array.isArray(f.levels_config) ? f.levels_config.length : 0;
+      return acc * numLevels;
+    }, 1);
+
+    if (!confirm(`Gerar corridas experimentais?\n\nSerá criada uma matriz com ${totalCombinations} combinações.`)) {
+      return;
+    }
+
+    setIsGeneratingRuns(true);
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/generate_runs/`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Erro ao gerar corridas');
+      }
+
+      await refetchRuns();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao gerar corridas');
+    } finally {
+      setIsGeneratingRuns(false);
+    }
+  };
+
+  const handleDeleteAllRuns = async () => {
+    if (!confirm(`Tem certeza que deseja deletar TODAS as ${runs.length} corridas?\n\nEsta ação não pode ser desfeita!`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/delete_all_runs/`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Erro ao deletar corridas');
+      }
+
+      const data = await response.json();
+      alert(`Sucesso! ${data.deleted_count || data.detail} corridas deletadas.`);
+      await refetchRuns();
+    } catch (error) {
+      console.error('Error deleting runs:', error);
+      alert(error instanceof Error ? error.message : 'Erro ao deletar corridas');
+    }
+  };
+
+  // Agrupa runs por combinação de fatores (mesmos valores de fatores)
   const groupedCombinations: CombinationGroup[] = [];
-  const combinationMap = new Map<number, CombinationGroup>();
+  const combinationMap = new Map<string, CombinationGroup>();
 
   console.log('Total runs:', runs.length);
   runs.forEach((run) => {
-    console.log('Run:', run.id, 'Standard Order:', run.standard_order, 'Replicate:', run.replicate_number);
-    if (!combinationMap.has(run.standard_order)) {
-      combinationMap.set(run.standard_order, {
-        standard_order: run.standard_order,
+    // Cria uma chave única baseada nos valores dos fatores
+    const factorKey = factors
+      .map(f => `${f.id}:${run.factor_values?.[f.id] ?? run.factor_values?.[f.id.toString()]}`)
+      .sort()
+      .join('|');
+    
+    console.log('Run:', run.id, 'Standard Order:', run.standard_order, 'Replicate:', run.replicate_number, 'Key:', factorKey);
+    
+    if (!combinationMap.has(factorKey)) {
+      combinationMap.set(factorKey, {
+        standard_order: run.standard_order, // Usa o primeiro standard_order encontrado
         factor_values: run.factor_values,
         runs: [],
         completedCount: 0,
@@ -156,7 +270,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
       });
     }
 
-    const group = combinationMap.get(run.standard_order)!;
+    const group = combinationMap.get(factorKey)!;
     group.runs.push(run);
     group.totalCount++;
     if (run.is_complete) {
@@ -164,9 +278,51 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
     }
   });
 
-  groupedCombinations.push(...Array.from(combinationMap.values()).sort((a, b) => a.standard_order - b.standard_order));
+  // Ordena pela menor ordem padrão de cada grupo
+  groupedCombinations.push(
+    ...Array.from(combinationMap.values()).sort((a, b) => 
+      Math.min(...a.runs.map(r => r.standard_order)) - Math.min(...b.runs.map(r => r.standard_order))
+    )
+  );
   console.log('Grouped combinations:', groupedCombinations.length);
   console.log('First group:', groupedCombinations[0]);
+
+  const exportToExcel = () => {
+    // Prepara os dados para exportação
+    const exportData = runs.map(run => {
+      const row: any = {
+        'Ordem Padrão': run.standard_order,
+        'Ordem Execução': run.run_order,
+        'Réplica': run.replicate_number,
+      };
+
+      // Adiciona valores dos fatores
+      factors.forEach(factor => {
+        const value = run.factor_values?.[factor.id] ?? run.factor_values?.[factor.id.toString()];
+        row[`${factor.name} (${factor.symbol})`] = value ?? '-';
+      });
+
+      // Adiciona valores de resposta
+      responseVars.forEach(rv => {
+        const value = run.response_values?.[rv.id] ?? run.response_values?.[rv.id.toString()];
+        row[rv.name + (rv.unit ? ` (${rv.unit})` : '')] = value ?? '';
+      });
+
+      // Adiciona status
+      row['Status'] = run.is_complete ? 'Completo' : 'Pendente';
+      row['Ponto Central'] = run.is_center_point ? 'Sim' : 'Não';
+
+      return row;
+    });
+
+    // Cria a planilha
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Corridas');
+
+    // Gera o arquivo
+    XLSX.writeFile(wb, `corridas_experimento_${slug}.xlsx`);
+  };
 
   if (loading) {
     return (
@@ -196,12 +352,34 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
               {runs.length} corridas • {runs.filter(r => r.is_complete).length} completas
             </p>
           </div>
+          {runs.length > 0 && (
+            <Button
+              onClick={handleDeleteAllRuns}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              🗑️ Deletar Todas as Corridas
+            </Button>
+          )}
+        </div>
+
+        {/* Upload Component */}
+        <div className="mb-6">
+          <ExperimentRunsUpload
+            experimentSlug={slug}
+            runs={runs}
+            factors={factors}
+            responseVars={responseVars}
+            onUploadComplete={() => fetchData(slug)}
+          />
         </div>
 
         {/* Runs Table */}
         <Card className="border-slate-200 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl text-slate-900">Matriz Experimental</CardTitle>
+            <p className="text-sm text-slate-600 mt-2">
+              As corridas estão agrupadas por combinação de fatores. Clique em uma linha para ver todas as réplicas daquela combinação.
+            </p>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -242,72 +420,78 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
                     <React.Fragment key={`combo-${combination.standard_order}`}>
                       {/* Combination Row */}
                       <tr
-                        className="hover:bg-slate-50 bg-slate-50/50 font-medium"
+                        className="hover:bg-blue-50 bg-blue-100/70 font-semibold cursor-pointer border-l-4 border-blue-500"
+                        onClick={() => setExpandedCombination(
+                          expandedCombination === combination.standard_order ? null : combination.standard_order
+                        )}
                       >
                         <td className="border border-slate-300 px-3 py-2 text-center text-sm">
-                          {combination.standard_order}
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-blue-700">{expandedCombination === combination.standard_order ? '▼' : '▶'}</span>
+                            <span>{Math.min(...combination.runs.map(r => r.standard_order))}</span>
+                          </div>
                         </td>
-                        <td className="border border-slate-300 px-3 py-2 text-center text-sm text-slate-500">
-                          -
+                        <td className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-600">
+                          {combination.runs.map(r => r.run_order).sort((a, b) => a - b).join(', ')}
                         </td>
                         {factors.map((factor) => (
-                          <td key={factor.id} className="border border-slate-300 px-3 py-2 text-center text-sm">
+                          <td key={factor.id} className="border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-900">
                             {combination.factor_values?.[factor.id] ?? combination.factor_values?.[factor.id.toString()] ?? '-'}
                           </td>
                         ))}
                         {responseVars.map((rv) => (
-                          <td key={rv.id} className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400 bg-emerald-50/30">
+                          <td key={rv.id} className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400 bg-blue-50/50">
                             -
                           </td>
                         ))}
                         <td className="border border-slate-300 px-3 py-2 text-center text-sm">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold text-xs">
-                            {combination.completedCount}/{combination.totalCount} experimentos
+                          <span className="px-3 py-1.5 bg-blue-600 text-white rounded-md font-semibold text-xs shadow-sm">
+                            {combination.completedCount}/{combination.totalCount} réplicas
                           </span>
                         </td>
                         <td className="border border-slate-300 px-3 py-2 text-center text-xs">
                           {combination.completedCount === combination.totalCount ? (
                             <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-semibold">
-                              Completo
+                              ✓ Completo
                             </span>
                           ) : combination.completedCount > 0 ? (
                             <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded font-semibold">
-                              Parcial
+                              ⚠ Parcial
                             </span>
                           ) : (
                             <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded">
-                              Pendente
+                              ○ Pendente
                             </span>
                           )}
                         </td>
                         <td className="border border-slate-300 px-3 py-2 text-center">
-                          <Button
-                            onClick={() => setExpandedCombination(
-                              expandedCombination === combination.standard_order ? null : combination.standard_order
-                            )}
-                            className="px-2 py-1 text-xs bg-slate-600 text-white hover:bg-slate-700"
-                          >
-                            {expandedCombination === combination.standard_order ? '▲ Ocultar' : '▼ Ver réplicas'}
-                          </Button>
+                          <span className="text-xs text-blue-600 font-medium">
+                            {expandedCombination === combination.standard_order ? 'Clique para ocultar' : `${combination.totalCount} réplica(s)`}
+                          </span>
                         </td>
                       </tr>
                       
                       {/* Expanded Replicate Rows */}
-                      {expandedCombination === combination.standard_order && combination.runs.map((run) => (
+                      {expandedCombination === combination.standard_order && combination.runs
+                        .sort((a, b) => a.replicate_number - b.replicate_number)
+                        .map((run) => (
                         <tr
                           key={run.id}
-                          className={`hover:bg-slate-50 ${run.is_excluded ? 'opacity-50 bg-red-50' : ''} ${
+                          className={`hover:bg-slate-50 bg-white border-l-4 border-blue-200 ${run.is_excluded ? 'opacity-50 bg-red-50' : ''} ${
                             run.is_center_point ? 'bg-blue-50' : ''
                           }`}
                         >
-                          <td className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400 pl-8">
-                            ↳ Réplica {run.replicate_number}
+                          <td className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-500 pl-8 bg-slate-50/50">
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="text-blue-400">↳</span>
+                              <span>Réplica {run.replicate_number}</span>
+                            </div>
                           </td>
-                          <td className="border border-slate-300 px-3 py-2 text-center text-sm font-semibold">
+                          <td className="border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-blue-700">
                             {run.run_order}
                           </td>
                           {factors.map((factor) => (
-                            <td key={factor.id} className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400">
+                            <td key={factor.id} className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400 bg-slate-50/30">
                               {run.factor_values?.[factor.id] ?? run.factor_values?.[factor.id.toString()] ?? '-'}
                             </td>
                           ))}
@@ -379,15 +563,11 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
                                     ✏️
                                   </Button>
                                   <Button
-                                    onClick={() => handleToggleExclude(run.id)}
-                                    className={`px-2 py-1 text-xs ${
-                                      run.is_excluded
-                                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                                        : 'bg-red-100 text-red-700 hover:bg-red-200'
-                                    }`}
-                                    title={run.is_excluded ? 'Incluir' : 'Excluir'}
+                                    onClick={() => handleDeleteRun(run.id)}
+                                    className="px-2 py-1 text-xs bg-red-600 text-white hover:bg-red-700"
+                                    title="Deletar corrida"
                                   >
-                                    {run.is_excluded ? '↩️' : '🗑️'}
+                                    🗑️
                                   </Button>
                                 </>
                               )}
@@ -402,36 +582,74 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
             </div>
 
             {runs.length === 0 && (
-              <div className="text-center py-12 text-slate-500">
-                <div className="text-4xl mb-4">📊</div>
-                <p className="text-lg font-semibold">Nenhuma corrida gerada ainda</p>
-                <p className="text-sm mt-2">Volte e clique em "Gerar Corridas" para criar a matriz experimental</p>
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📊</div>
+                <p className="text-lg font-semibold text-slate-900 mb-2">Nenhuma corrida gerada ainda</p>
+                <p className="text-sm text-slate-600 mb-6">Gere as corridas experimentais para começar a coletar dados</p>
+                <Button
+                  onClick={handleGenerateRuns}
+                  disabled={isGeneratingRuns || factors.length === 0}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700 px-6 py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingRuns ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                      Gerando...
+                    </>
+                  ) : (
+                    <>▶️ Gerar Corridas Experimentais</>
+                  )}
+                </Button>
+                {factors.length === 0 && (
+                  <p className="text-xs text-red-600 mt-3">
+                    Adicione pelo menos um fator no experimento primeiro
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Export Section */}
+        {runs.length > 0 && (
+          <div className="mt-6">
+            <Button
+              onClick={exportToExcel}
+              className="w-full bg-emerald-600 text-white hover:bg-emerald-700 py-4 text-base font-semibold"
+            >
+              📄 Exportar Todas as Corridas para Excel
+            </Button>
+          </div>
+        )}
+
         {/* Legend */}
         {runs.length > 0 && (
           <Card className="border-slate-200 shadow-lg mt-6">
             <CardHeader>
-              <CardTitle className="text-lg text-slate-900">Legenda</CardTitle>
+              <CardTitle className="text-lg text-slate-900">Legenda e Instruções</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-2 text-sm">Como Funciona o Agrupamento:</h4>
+                <p className="text-sm text-slate-600 mb-2">
+                  As linhas <span className="bg-blue-100 px-1 py-0.5 rounded font-semibold">azuis</span> representam combinações únicas de fatores.
+                  Clique em uma combinação para expandir e ver todas as réplicas (repetições) daquela condição experimental.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm pt-3 border-t border-slate-200">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-blue-50 border border-slate-300"></div>
                   <span className="text-slate-700">Ponto Central</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold">
-                    Completo
+                    ✓ Completo
                   </div>
                   <span className="text-slate-700">Todos os valores preenchidos</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold">
-                    Parcial
+                    ⚠ Parcial
                   </div>
                   <span className="text-slate-700">Alguns valores preenchidos</span>
                 </div>

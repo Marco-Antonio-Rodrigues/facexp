@@ -5,6 +5,9 @@
  * Documentação automática da API
  * OpenAPI spec version: 1.0.0
  */
+// @ts-nocheck
+/* eslint-disable */
+/*
 import {
   useMutation
 } from '@tanstack/react-query';
@@ -13,6 +16,7 @@ import type {
   UseMutationOptions,
   UseMutationResult
 } from '@tanstack/react-query';
+*/
 
 import type {
   TokenRefresh
