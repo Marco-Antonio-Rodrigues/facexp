@@ -13,7 +13,7 @@ class FactorInline(admin.TabularInline):
 class ResponseVariableInline(admin.TabularInline):
     model = ResponseVariable
     extra = 0
-    fields = ['name', 'unit', 'optimization_goal']
+    fields = ['name', 'unit']
     readonly_fields = ['created_at']
     show_change_link = True
 
@@ -88,8 +88,8 @@ class FactorAdmin(admin.ModelAdmin):
 
 @admin.register(ResponseVariable)
 class ResponseVariableAdmin(admin.ModelAdmin):
-    list_display = ['name', 'unit', 'optimization_goal', 'experiment', 'created_at']
-    list_filter = ['optimization_goal', 'created_at']
+    list_display = ['name', 'unit', 'experiment', 'created_at']
+    list_filter = ['created_at']
     search_fields = ['name', 'unit', 'experiment__title']
     readonly_fields = ['created_at', 'updated_at']
     list_per_page = 20
@@ -98,9 +98,6 @@ class ResponseVariableAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Informações Básicas', {
             'fields': ('name', 'unit', 'experiment')
-        }),
-        ('Configuração da Variável', {
-            'fields': ('optimization_goal',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

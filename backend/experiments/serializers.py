@@ -213,7 +213,6 @@ class ResponseVariableListSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'unit',
-            'optimization_goal',
             'created_at',
             'updated_at',
         ]
@@ -233,7 +232,6 @@ class ResponseVariableDetailSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'unit',
-            'optimization_goal',
             'experiment',
             'experiment_title',
             'experiment_slug',
@@ -253,7 +251,6 @@ class ResponseVariableCreateSerializer(serializers.ModelSerializer):
         fields = [
             'name',
             'unit',
-            'optimization_goal',
         ]
     
     def validate_name(self, value):
@@ -281,7 +278,6 @@ class ResponseVariableUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'name',
             'unit',
-            'optimization_goal',
         ]
     
     def validate_name(self, value):

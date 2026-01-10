@@ -1,9 +1,12 @@
+import logging
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+
+logger = logging.getLogger(__name__)
 
 from .models import Experiment, Factor, ResponseVariable, ExperimentRun
 from .serializers import (
@@ -24,6 +27,7 @@ from .serializers import (
     ExperimentRunCreateSerializer,
     ExperimentRunUpdateSerializer,
 )
+from .services import ExperimentAnalysisService
 
 
 @extend_schema(tags=['Experiments'])
@@ -278,6 +282,126 @@ class ExperimentViewSet(viewsets.ModelViewSet):
             'detail': f'{deleted_count} runs deleted successfully.',
             'deleted_count': deleted_count
         }, status=status.HTTP_200_OK)
+    
+    @extend_schema(
+        summary="Análise Estatística do Experimento",
+        description="""
+        Calcula análise estatística completa do experimento em tempo real.
+        
+        **Seções retornadas:**
+        - metadata: Informações do experimento
+        - summary: Estatísticas descritivas (média, desvio, CV)
+        - anova: Tabela ANOVA com F-test e p-values
+        - regression: Coeficientes de regressão e equação
+        - effects: Efeitos principais e interações
+        - residuals: Análise de resíduos e testes de normalidade
+        - plots_data: Dados formatados para gráficos (Pareto, Main Effects, etc)
+        
+        **Query Parameters:**
+        - response: Nome da variável de resposta (opcional, usa a primeira se não especificado)
+        
+        **Requisitos:**
+        - Experimento deve ter fatores, variáveis de resposta e runs
+        - Runs devem ter valores de resposta preenchidos
+        - Mínimo de runs: 2^k (k = número de fatores)
+        """,
+        parameters=[
+            OpenApiParameter(
+                name='response',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Nome da variável de resposta a analisar',
+                required=False
+            )
+        ],
+        responses={
+            200: {
+                'description': 'Análise calculada com sucesso',
+                'content': {
+                    'application/json': {
+                        'example': {
+                            'metadata': {'experiment_id': 1, 'num_factors': 3},
+                            'summary': {'mean': 25.5, 'std': 2.3, 'r_squared': 0.94},
+                            'anova': {'table': [], 'r_squared': 0.94},
+                            'regression': {'coefficients': [], 'equation': 'Y = ...'},
+                            'effects': {'main_effects': {}, 'interactions': {}},
+                            'residuals': {'residuals': [], 'normality_test': {}},
+                            'plots_data': {'pareto': {}, 'main_effects': []}
+                        }
+                    }
+                }
+            },
+            400: {
+                'description': 'Dados insuficientes ou inválidos',
+                'content': {
+                    'application/json': {
+                        'example': {'error': 'Número insuficiente de runs completos'}
+                    }
+                }
+            }
+        }
+    )
+    @action(detail=True, methods=['get'], url_path='analysis')
+    def experiment_analysis(self, request, slug=None):
+        """
+        Endpoint para análise estatística completa do experimento.
+        
+        Calcula ANOVA, regressão, efeitos e análise de resíduos em tempo real.
+        NÃO persiste dados no banco - todos os cálculos são on-demand.
+        """
+        experiment = self.get_object()
+        
+        # Obter variável de resposta do query param (opcional)
+        response_name = request.query_params.get('response', None)
+        
+        logger.info(f"=== INICIANDO ANÁLISE ===")
+        logger.info(f"Experimento: {experiment.slug}")
+        logger.info(f"Variável de resposta solicitada: {response_name}")
+        logger.info(f"Total de fatores: {experiment.factors.count()}")
+        logger.info(f"Total de variáveis de resposta: {experiment.response_variables.count()}")
+        logger.info(f"Total de corridas: {experiment.runs.count()}")
+        
+        try:
+            # Inicializar service de análise
+            logger.info("Inicializando ExperimentAnalysisService...")
+            analysis_service = ExperimentAnalysisService(experiment)
+            logger.info("Service inicializado com sucesso")
+            
+            # Calcular análise completa
+            logger.info(f"Chamando compute_full_analysis com response_name='{response_name}'")
+            results = analysis_service.compute_full_analysis(response_name)
+            logger.info("Análise computada com sucesso")
+            
+            return Response(results, status=status.HTTP_200_OK)
+            
+        except ValueError as e:
+            # Erros de validação (dados insuficientes, etc)
+            logger.error(f"ValueError na análise: {str(e)}", exc_info=True)
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except ImportError as e:
+            # Falta de dependências estatísticas
+            logger.error(f"ImportError na análise: {str(e)}", exc_info=True)
+            return Response(
+                {'error': f'Biblioteca necessária não instalada: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except Exception as e:
+            # Outros erros inesperados
+            logger.error(f"Erro inesperado na análise: {str(e)}", exc_info=True)
+            logger.error(f"Tipo do erro: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback completo:\n{traceback.format_exc()}")
+            return Response(
+                {
+                    'error': 'Erro ao calcular análise estatística',
+                    'detail': str(e),
+                    'type': type(e).__name__
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 @extend_schema(tags=['Experiments'])
@@ -549,7 +673,6 @@ class ResponseVariableViewSet(viewsets.ModelViewSet):
         new_response_var = ResponseVariable.objects.create(
             name=new_name,
             unit=response_var.unit,
-            optimization_goal=response_var.optimization_goal,
             experiment=response_var.experiment
         )
         
@@ -755,6 +878,111 @@ class ExperimentRunViewSet(viewsets.ModelViewSet):
         
         serializer = ExperimentRunDetailSerializer(created_runs, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request, experiment_slug=None):
+        """
+        Deleta todos os runs do experimento.
+        Útil para regenerar corridas com novos parâmetros.
+        """
+        experiment = get_object_or_404(
+            Experiment,
+            slug=experiment_slug,
+            owner=request.user
+        )
+        
+        deleted_count = experiment.runs.count()
+        experiment.runs.all().delete()
+        
+        return Response(
+            {
+                'detail': f'{deleted_count} run(s) deletado(s) com sucesso.',
+                'deleted_count': deleted_count
+            },
+            status=status.HTTP_200_OK
+        )
+    
+    @action(detail=False, methods=['post'])
+    def import_from_excel(self, request, experiment_slug=None):
+        """
+        Importa corridas de dados Excel.
+        Se replace=true, deleta todas as corridas existentes antes de criar novas.
+        Espera formato: {
+            "replace": true/false,
+            "runs": [{"run_order": 1, "replicate_number": 1, "factor_values": {...}, "response_values": {...}}, ...]
+        }
+        """
+        from django.db import transaction
+        
+        experiment = get_object_or_404(
+            Experiment,
+            slug=experiment_slug,
+            owner=request.user
+        )
+        
+        replace = request.data.get('replace', False)
+        runs_data = request.data.get('runs', [])
+        
+        if not isinstance(runs_data, list):
+            return Response(
+                {'detail': 'Expected "runs" to be a list.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        created_runs = []
+        errors = []
+        deleted_count = 0
+        
+        try:
+            with transaction.atomic():
+                # Se replace=true, deleta todas as corridas existentes
+                if replace:
+                    deleted_count = experiment.runs.count()
+                    experiment.runs.all().delete()
+                
+                # Cria as novas corridas
+                for idx, run_data in enumerate(runs_data):
+                    serializer = ExperimentRunCreateSerializer(
+                        data=run_data,
+                        context={'experiment_id': experiment.id}
+                    )
+                    
+                    if serializer.is_valid():
+                        run = serializer.save(experiment=experiment)
+                        created_runs.append(run)
+                    else:
+                        errors.append({
+                            'index': idx,
+                            'data': run_data,
+                            'errors': serializer.errors
+                        })
+                
+                # Se houver erros, cancela a transação
+                if errors:
+                    raise ValueError('Validation errors found')
+                
+                # Atualiza status do experimento
+                if created_runs and experiment.status == Experiment.Status.DRAFT:
+                    experiment.status = Experiment.Status.DESIGN_READY
+                    experiment.save()
+        
+        except ValueError:
+            # Erros de validação
+            return Response(
+                {
+                    'created': 0,
+                    'errors': errors
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = ExperimentRunDetailSerializer(created_runs, many=True)
+        return Response({
+            'detail': f'{len(created_runs)} runs imported successfully.',
+            'deleted': deleted_count if replace else 0,
+            'created': len(created_runs),
+            'runs': serializer.data
+        }, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['patch'])
     def bulk_update_responses(self, request, experiment_slug=None):

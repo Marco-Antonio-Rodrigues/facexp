@@ -200,13 +200,13 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <Card className="max-w-2xl w-full border-slate-200 my-8">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <Card className="max-w-2xl w-full border-border my-8 shadow-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-slate-900">
+          <CardTitle className="text-2xl text-foreground">
             {editData ? 'Editar Fator' : 'Adicionar Fator'}
           </CardTitle>
-          <p className="text-sm text-slate-600 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             Fatores são as variáveis independentes que serão manipuladas no experimento
           </p>
         </CardHeader>
@@ -221,7 +221,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Nome */}
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-slate-900 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-2">
                 Nome do Fator *
               </label>
               <Input
@@ -232,12 +232,13 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                 placeholder="Ex: Temperatura, pH, Concentração"
                 required
                 className="w-full"
+                autoFocus
               />
             </div>
 
             {/* Símbolo */}
             <div>
-              <label htmlFor="symbol" className="block text-sm font-semibold text-slate-900 mb-2">
+              <label htmlFor="symbol" className="block text-sm font-semibold text-foreground mb-2">
                 Símbolo *
               </label>
               <Input
@@ -249,42 +250,42 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                 required
                 className="w-full font-mono"
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Identificador único curto para o fator (usado em gráficos e tabelas)
               </p>
             </div>
 
             {/* Tipo de Dado */}
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-semibold text-foreground mb-2">
                 Tipo de Dado *
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => handleDataTypeChange(DataTypeEnum.quantitative)}
-                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                  className={`p-4 border-2 rounded-lg text-left transition-all ${
                     formData.data_type === DataTypeEnum.quantitative
-                      ? 'border-primary bg-primary/5'
-                      : 'border-slate-300 hover:border-slate-400'
+                      ? 'border-primary bg-primary/10 shadow-md'
+                      : 'border-border hover:border-primary/50 hover:bg-muted/30'
                   }`}
                 >
-                  <div className="font-semibold text-slate-900">Quantitativo</div>
-                  <div className="text-xs text-slate-600 mt-1">
+                  <div className="font-semibold text-foreground">Quantitativo</div>
+                  <div className="text-xs text-muted-foreground mt-1">
                     Valores numéricos contínuos (ex: temperatura, pressão)
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDataTypeChange(DataTypeEnum.categorical)}
-                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                  className={`p-4 border-2 rounded-lg text-left transition-all ${
                     formData.data_type === DataTypeEnum.categorical
-                      ? 'border-primary bg-primary/5'
-                      : 'border-slate-300 hover:border-slate-400'
+                      ? 'border-primary bg-primary/10 shadow-md'
+                      : 'border-border hover:border-primary/50 hover:bg-muted/30'
                   }`}
                 >
-                  <div className="font-semibold text-slate-900">Categórico</div>
-                  <div className="text-xs text-slate-600 mt-1">
+                  <div className="font-semibold text-foreground">Categórico</div>
+                  <div className="text-xs text-muted-foreground mt-1">
                     Categorias discretas (ex: catalisador A, B, C)
                   </div>
                 </button>
@@ -293,11 +294,11 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
 
             {/* Configuração Quantitativa */}
             {formData.data_type === DataTypeEnum.quantitative && (
-              <div className="space-y-4 p-4 bg-blue-50/50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-slate-900">Configuração dos Níveis</h4>
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+                <h4 className="font-semibold text-foreground">Configuração dos Níveis</h4>
                 
                 <div>
-                  <label htmlFor="quantLevels" className="block text-sm font-semibold text-slate-900 mb-1">
+                  <label htmlFor="quantLevels" className="block text-sm font-semibold text-foreground mb-1">
                     Níveis (valores numéricos separados por ponto e vírgula)
                   </label>
                   <Input
@@ -307,9 +308,9 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                     onChange={(e) => setQuantitativeInput(e.target.value)}
                     placeholder="Ex: -1; 0; 1 ou -2; -1; 0; 1; 2"
                     required
-                    className="w-full"
+                    className="w-full font-mono"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Mínimo de 2 níveis. Comum: 3 níveis (-1; 0; 1) ou 5 níveis (-2; -1; 0; 1; 2)
                   </p>
                 </div>
@@ -318,11 +319,11 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
 
             {/* Configuração Categórica */}
             {formData.data_type === DataTypeEnum.categorical && (
-              <div className="space-y-4 p-4 bg-blue-50/50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-slate-900">Níveis Categóricos</h4>
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+                <h4 className="font-semibold text-foreground">Níveis Categóricos</h4>
                 
                 <div>
-                  <label htmlFor="categorical_levels" className="block text-sm font-semibold text-slate-900 mb-1">
+                  <label htmlFor="categorical_levels" className="block text-sm font-semibold text-foreground mb-1">
                     Níveis (separados por ponto e vírgula) *
                   </label>
                   <Input
@@ -334,7 +335,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                     required
                     className="w-full"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Digite os níveis separados por ponto e vírgula (mínimo 2 níveis)
                   </p>
                 </div>
@@ -342,15 +343,15 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
             )}
 
             {/* Actions */}
-            <div className="flex items-center gap-4 pt-4 border-t border-slate-200">
+            <div className="flex items-center gap-4 pt-4 border-t border-border">
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                className="flex-1"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                     Salvando...
                   </>
                 ) : (
@@ -364,7 +365,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="bg-slate-200 text-slate-700 hover:bg-slate-300"
+                variant="outline"
               >
                 Cancelar
               </Button>

@@ -236,7 +236,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
     }
   };
 
-  const handleGenerateRuns = async () => {
+  const handleGenerateRuns = async (forceRegenerate = false) => {
     if (factors.length === 0) {
       alert('Adicione pelo menos um fator antes de gerar corridas!');
       return;
@@ -247,7 +247,24 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
       return acc * numLevels;
     }, 1);
 
-    if (!confirm(`Gerar corridas experimentais para este experimento?\n\nSerá criada uma matriz com ${totalCombinations} combinações (fatorial completo).`)) {
+    const replicates = experiment?.replicates || 1;
+    const totalRuns = totalCombinations * replicates;
+
+    let confirmMessage = `Gerar corridas experimentais para este experimento?\n\n` +
+      `• Combinações de fatores: ${totalCombinations}\n` +
+      `• Replicações: ${replicates}\n` +
+      `• Total de runs: ${totalRuns}`;
+    
+    if (forceRegenerate) {
+      confirmMessage = `ATENÇÃO: Isso irá DELETAR todas as corridas existentes e seus dados!\n\n` +
+        `Novos runs a serem criados:\n` +
+        `• Combinações: ${totalCombinations}\n` +
+        `• Replicações: ${replicates}\n` +
+        `• Total: ${totalRuns}\n\n` +
+        `Deseja continuar?`;
+    }
+
+    if (!confirm(confirmMessage)) {
       return;
     }
 
@@ -255,6 +272,25 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
     try {
       const token = localStorage.getItem('access_token');
+      
+      // Se for regeneração, primeiro deleta as runs existentes
+      if (forceRegenerate) {
+        const deleteResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/bulk_delete/`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        
+        if (!deleteResponse.ok) {
+          throw new Error('Erro ao deletar corridas existentes');
+        }
+      }
+      
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/generate_runs/`,
         {
@@ -316,12 +352,30 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                onClick={() => router.push('/experiments')}
-                className="bg-muted text-foreground hover:bg-muted/80"
-              >
-                ← Voltar
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => router.push('/experiments')}
+                  className="bg-muted text-foreground hover:bg-muted/80"
+                >
+                  ← Voltar
+                </Button>
+                {hasRuns && (
+                  <>
+                    <Button
+                      onClick={() => router.push(`/experiments/${slug}/runs`)}
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      📋 Gerenciar Corridas
+                    </Button>
+                    <Button
+                      onClick={() => router.push(`/experiments/${slug}/analysis`)}
+                      className="bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      📊 Analisar Experimento
+                    </Button>
+                  </>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <div className="text-2xl">🧪</div>
                 <h1 className="text-xl font-bold text-foreground">{experiment.title}</h1>
@@ -588,11 +642,11 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                   onClick={() => router.push(`/experiments/${slug}/edit`)}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  ✏️ Editar
+                  ✏️ Editar Experimento
                 </Button>
                 {!hasRuns ? (
                   <Button 
-                    onClick={handleGenerateRuns}
+                    onClick={() => handleGenerateRuns(false)}
                     disabled={isGeneratingRuns || factors.length === 0}
                     className="w-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -606,18 +660,27 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     )}
                   </Button>
                 ) : (
-                  <Button 
-                    onClick={() => router.push(`/experiments/${slug}/runs`)}
-                    className="w-full bg-muted text-foreground hover:bg-muted/80"
-                  >
-                    📊 Ver Corridas
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={() => router.push(`/experiments/${slug}/runs`)}
+                      className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      📋 Gerenciar Corridas
+                    </Button>
+                    <Button 
+                      onClick={() => handleGenerateRuns(true)}
+                      disabled={isGeneratingRuns}
+                      className="w-full bg-amber-600/90 text-white hover:bg-amber-600 border border-amber-500/50"
+                    >
+                      🔄 Regenerar Corridas
+                    </Button>
+                  </>
                 )}
                 <Button 
                   onClick={() => setShowDeleteModal(true)}
                   className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20"
                 >
-                  🗑️ Excluir
+                  🗑️ Excluir Experimento
                 </Button>
               </CardContent>
             </Card>

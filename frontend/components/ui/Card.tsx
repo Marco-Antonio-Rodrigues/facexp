@@ -29,6 +29,14 @@ export function CardTitle({ children, className = '' }: CardProps) {
   );
 }
 
+export function CardDescription({ children, className = '' }: CardProps) {
+  return (
+    <p className={`text-sm text-muted-foreground ${className}`}>
+      {children}
+    </p>
+  );
+}
+
 export function CardContent({ children, className = '' }: CardProps) {
   return (
     <div className={className}>

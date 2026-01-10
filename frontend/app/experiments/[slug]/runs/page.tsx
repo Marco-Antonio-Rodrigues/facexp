@@ -216,7 +216,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   };
 
   const handleDeleteAllRuns = async () => {
-    if (!confirm(`Tem certeza que deseja deletar TODAS as ${runs.length} corridas?\n\nEsta ação não pode ser desfeita!`)) {
+    if (!confirm(`Tem certeza que deseja deletar TODAS as ${runs?.length || 0} corridas?\n\nEsta ação não pode ser desfeita!`)) {
       return;
     }
 
@@ -250,8 +250,8 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   const groupedCombinations: CombinationGroup[] = [];
   const combinationMap = new Map<string, CombinationGroup>();
 
-  console.log('Total runs:', runs.length);
-  runs.forEach((run) => {
+  console.log('Total runs:', runs?.length || 0);
+  (runs || []).forEach((run) => {
     // Cria uma chave única baseada nos valores dos fatores
     const factorKey = factors
       .map(f => `${f.id}:${run.factor_values?.[f.id] ?? run.factor_values?.[f.id.toString()]}`)
@@ -289,7 +289,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
 
   const exportToExcel = () => {
     // Prepara os dados para exportação
-    const exportData = runs.map(run => {
+    const exportData = (runs || []).map(run => {
       const row: any = {
         'Ordem Padrão': run.standard_order,
         'Ordem Execução': run.run_order,
@@ -349,10 +349,10 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
             </Button>
             <h1 className="text-3xl font-bold text-slate-900">Corridas Experimentais</h1>
             <p className="text-slate-600 mt-2">
-              {runs.length} corridas • {runs.filter(r => r.is_complete).length} completas
+              {runs?.length || 0} corridas • {runs?.filter(r => r.is_complete).length || 0} completas
             </p>
           </div>
-          {runs.length > 0 && (
+          {(runs?.length || 0) > 0 && (
             <Button
               onClick={handleDeleteAllRuns}
               className="bg-red-600 text-white hover:bg-red-700"
@@ -612,13 +612,30 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
 
         {/* Export Section */}
         {runs.length > 0 && (
-          <div className="mt-6">
+          <div className="mt-6 space-y-3">
             <Button
               onClick={exportToExcel}
               className="w-full bg-emerald-600 text-white hover:bg-emerald-700 py-4 text-base font-semibold"
             >
               📄 Exportar Todas as Corridas para Excel
             </Button>
+            
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => router.push(`/experiments/${slug}`)}
+                className="w-full bg-slate-600 text-white hover:bg-slate-700 py-3 text-base font-semibold"
+              >
+                ← Voltar ao Experimento
+              </Button>
+              
+              <Button
+                onClick={() => router.push(`/experiments/${slug}/analysis`)}
+                className="w-full bg-purple-600 text-white hover:bg-purple-700 py-3 text-base font-semibold"
+              >
+                📊 Analisar Experimento
+              </Button>
+            </div>
           </div>
         )}
 

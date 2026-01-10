@@ -155,12 +155,6 @@ class ResponseVariable(models.Model):
     Modelo para armazenar variáveis de resposta (variáveis dependentes) de um experimento.
     """
     
-    class OptimizationGoal(models.TextChoices):
-        MAXIMIZE = 'maximize', _('Maximize')
-        MINIMIZE = 'minimize', _('Minimize')
-        TARGET = 'target', _('Target')
-        NONE = 'none', _('None')
-    
     # Identificação
     name = models.CharField(_('name'), max_length=100)
     
@@ -170,15 +164,6 @@ class ResponseVariable(models.Model):
         max_length=50,
         blank=True,
         help_text=_('Unit of measurement (e.g., kg, °C, %)')
-    )
-    
-    # Objetivo de Otimização
-    optimization_goal = models.CharField(
-        _('optimization goal'),
-        max_length=20,
-        choices=OptimizationGoal.choices,
-        default=OptimizationGoal.NONE,
-        help_text=_('Whether to maximize, minimize, or target this response')
     )
     
     # Relacionamento
@@ -200,7 +185,6 @@ class ResponseVariable(models.Model):
         unique_together = [['experiment', 'name']]
         indexes = [
             models.Index(fields=['experiment', 'id']),
-            models.Index(fields=['optimization_goal']),
         ]
     
     def __str__(self):
