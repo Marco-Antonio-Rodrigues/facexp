@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cardap.io"
+name = "facexp"
 version = "0.1.0"
 description = ""
 authors = ["Marco Antonio Rodrigues Gomes de Souza <94053824+Marco-Antonio-Rodrigues@users.noreply.github.com>"]

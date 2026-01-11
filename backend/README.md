@@ -1,6 +1,6 @@
-# Cardap.io Backend
+# FacExp Backend
 
-Este é o repositório do backend do Cardap.io, um sistema para gestão de negócios de restaurantes. Ele fornece APIs e funcionalidades de back-office para administração de pedidos, produtos, horários de funcionamento e mais.
+Este é o repositório do backend do FacExp, um sistema para planejamento e análise de experimentos fatoriais. Ele fornece APIs e funcionalidades para criação de designs experimentais, gerenciamento de fatores e variáveis de resposta, coleta de dados e análise estatística de experimentos.
 
 ## Estrutura do Projeto
 
@@ -10,6 +10,7 @@ O projeto segue a seguinte estrutura de diretórios:
 .
 ├── core/                # Configurações e utilitários globais do projeto
 ├── users/               # Aplicação para gerenciamento de usuários e autenticação
+├── experiments/         # Aplicação para gerenciamento de experimentos fatoriais
 ```
 
 ## Requisitos
