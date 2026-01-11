@@ -7,6 +7,7 @@
  */
 
 export * from './dataTypeEnum';
+export * from './designMatrix';
 export * from './designTypeEnum';
 export * from './experimentCreate';
 export * from './experimentDetail';

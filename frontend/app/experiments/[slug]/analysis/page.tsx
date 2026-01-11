@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip';
 import ParetoChart from '@/components/charts/ParetoChart';
 import MainEffectsChart from '@/components/charts/MainEffectsChart';
 import NormalProbabilityPlot from '@/components/charts/NormalProbabilityPlot';
 import ResidualsVsFittedChart from '@/components/charts/ResidualsVsFittedChart';
 import { InteractionPlot } from '@/components/charts/InteractionPlot';
 import { RegressionCalculator } from '@/components/RegressionCalculator';
+import { DesignMatrixTable } from '@/components/DesignMatrixTable';
+import { DesignMatrixData } from '@/types/designMatrix';
 
 interface AnalysisMetadata {
   experiment_id: number;
@@ -84,6 +87,7 @@ interface AnalysisData {
   residuals: any;
   plots_data: any;
   interaction_data?: InteractionData;
+  design_matrix: DesignMatrixData;
 }
 
 interface ResponseVariable {
@@ -93,6 +97,18 @@ interface ResponseVariable {
   unit?: string;
   optimization_goal?: string;
 }
+
+// Função auxiliar para formatar números de forma inteligente
+const formatNumber = (value: number | null, decimals: number = 4): string => {
+  if (value === null || value === undefined) return '-';
+  if (Math.abs(value) < 0.0001) return '0';
+  
+  // Remove zeros desnecessários à direita
+  return Number.isInteger(value) 
+    ? value.toString() 
+    : value.toFixed(decimals).replace(/\.?0+$/, '');
+};
+
 
 export default function AnalysisPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
@@ -360,7 +376,274 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
               </CardContent>
             </Card>
 
-            {/* Qualidade do Modelo */}
+            {/* Tabela de Sinais (Design Matrix) */}
+            <DesignMatrixTable
+              designMatrix={analysisData.design_matrix}
+              showTotals={true}
+              showMeans={true}
+              showEffects={true}
+            />
+
+            {/* Tabela ANOVA */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Análise de Variância (ANOVA)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TooltipProvider>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="border border-border px-4 py-2 text-left font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">Fonte</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Origem da variação: fatores do experimento, interações ou resíduo (erro experimental)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">GL</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Graus de Liberdade: número de valores independentes que podem variar na análise</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">SQ</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Soma dos Quadrados: medida da variabilidade total atribuída a cada fonte</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">MQ</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Quadrado Médio: SQ dividido pelos GL, representa a variância média da fonte</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">F</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Estatística F: razão entre o MQ do fator e o MQ do resíduo, indica a significância do efeito</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">p-valor</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Probabilidade de observar um resultado tão extremo por acaso. Valores &lt; 0.05 indicam efeito significativo</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-center font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">Significativo</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Indica se o efeito é estatisticamente significativo (✓) com nível de confiança de 95% (α = 0.05)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                        </tr>
+                      </thead>
+                    <tbody>
+                      {analysisData.anova.table.map((row, idx) => (
+                        <tr
+                          key={idx}
+                          className={row.is_significant ? 'bg-emerald-50 text-gray-600' : ''}
+                        >
+                          <td className="border border-border px-4 py-2 font-mono">
+                            {row.source}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {row.df !== null ? row.df : '-'}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(row.sum_sq, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(row.mean_sq, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(row.f_value, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(row.p_value, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-center">
+                            {row.is_significant ? (
+                              <span className="text-emerald-600 font-bold">✓</span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  * Valores significativos (p &lt; 0.05) destacados em verde. Passe o mouse sobre os cabeçalhos para ver explicações.
+                </p>
+                </TooltipProvider>
+              </CardContent>
+            </Card>
+
+            {/* Equação de Regressão - Nova versão interativa */}
+            <RegressionCalculator 
+              regression={analysisData.regression}
+              factors={analysisData.metadata.factors}
+              responseVariableName={selectedResponse}
+              experimentData={
+                analysisData.interaction_data ? {
+                  factors: analysisData.interaction_data.combinations.reduce((acc: Record<string, (number | string)[]>, combo: any) => {
+                    if (combo.factor_x && combo.factor_x.levels) {
+                      acc[combo.factor_x.symbol] = combo.factor_x.levels;
+                    }
+                    if (combo.factor_lines && combo.factor_lines.levels) {
+                      acc[combo.factor_lines.symbol] = combo.factor_lines.levels;
+                    }
+                    return acc;
+                  }, {})
+                } : undefined
+              }
+            />
+
+            {/* Tabela de Coeficientes de Regressão */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Coeficientes de Regressão (Detalhado)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TooltipProvider>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="border border-border px-4 py-2 text-left font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">Termo</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Intercepto, fatores individuais ou interações entre fatores do modelo de regressão</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">Coeficiente</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Valor estimado do coeficiente: representa o impacto do termo na variável resposta</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">Erro Padrão</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Medida da incerteza na estimativa do coeficiente: quanto menor, mais precisa a estimativa</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">t-valor</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Estatística t: razão entre o coeficiente e seu erro padrão, indica a significância do termo</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-right font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">p-valor</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Probabilidade de o coeficiente ser zero. Valores &lt; 0.05 indicam que o termo é significativo</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                          <th className="border border-border px-4 py-2 text-center font-semibold">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help">Significativo</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Indica se o termo é estatisticamente significativo (✓) com nível de confiança de 95% (α = 0.05)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                        </tr>
+                      </thead>
+                    <tbody>
+                      {analysisData.regression.coefficients.map((coef, idx) => (
+                        <tr
+                          key={idx}
+                          className={coef.is_significant ? 'bg-emerald-50  text-gray-600' : ''}
+                        >
+                          <td className="border border-border px-4 py-2 font-mono">
+                            {coef.term}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(coef.coefficient, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(coef.std_error, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(coef.t_value, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-right">
+                            {formatNumber(coef.p_value, 4)}
+                          </td>
+                          <td className="border border-border px-4 py-2 text-center">
+                            {coef.is_significant ? (
+                              <span className="text-emerald-600 font-bold">✓</span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  * Valores significativos (p &lt; 0.05) destacados em verde. Passe o mouse sobre os cabeçalhos para ver explicações.
+                </p>
+                </TooltipProvider>
+              </CardContent>
+            </Card>
+
+            {/* Qualidade do Modelo e Predição */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Qualidade do Modelo</CardTitle>
@@ -398,166 +681,12 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
               </CardContent>
             </Card>
 
-            {/* Tabela ANOVA */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Análise de Variância (ANOVA)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted">
-                        <th className="border border-border px-4 py-2 text-left font-semibold">
-                          Fonte
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          GL
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          SQ
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          MQ
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          F
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          p-valor
-                        </th>
-                        <th className="border border-border px-4 py-2 text-center font-semibold">
-                          Significativo
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analysisData.anova.table.map((row, idx) => (
-                        <tr
-                          key={idx}
-                          className={row.is_significant ? 'bg-emerald-50 text-gray-600' : ''}
-                        >
-                          <td className="border border-border px-4 py-2 font-mono">
-                            {row.source}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {row.df !== null ? row.df : '-'}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {row.sum_sq !== null ? row.sum_sq.toFixed(4) : '-'}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {row.mean_sq !== null ? row.mean_sq.toFixed(4) : '-'}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {row.f_value !== null ? row.f_value.toFixed(4) : '-'}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {row.p_value !== null ? row.p_value.toFixed(4) : '-'}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-center">
-                            {row.is_significant ? (
-                              <span className="text-emerald-600 font-bold">✓</span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="text-sm text-muted-foreground mt-4">
-                  * Valores significativos (p &lt; 0.05) destacados em verde
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Equação de Regressão - Nova versão interativa */}
-            <RegressionCalculator 
+            {/* Calculadora de Predição */}
+            <RegressionCalculator
               regression={analysisData.regression}
               factors={analysisData.metadata.factors}
               responseVariableName={selectedResponse}
-              experimentData={
-                analysisData.interaction_data ? {
-                  factors: analysisData.interaction_data.combinations.reduce((acc: Record<string, (number | string)[]>, combo: any) => {
-                    if (combo.factor_x && combo.factor_x.levels) {
-                      acc[combo.factor_x.symbol] = combo.factor_x.levels;
-                    }
-                    if (combo.factor_lines && combo.factor_lines.levels) {
-                      acc[combo.factor_lines.symbol] = combo.factor_lines.levels;
-                    }
-                    return acc;
-                  }, {})
-                } : undefined
-              }
             />
-
-            {/* Tabela de Coeficientes de Regressão */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Coeficientes de Regressão (Detalhado)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted">
-                        <th className="border border-border px-4 py-2 text-left font-semibold">
-                          Termo
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          Coeficiente
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          Erro Padrão
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          t-valor
-                        </th>
-                        <th className="border border-border px-4 py-2 text-right font-semibold">
-                          p-valor
-                        </th>
-                        <th className="border border-border px-4 py-2 text-center font-semibold">
-                          Significativo
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analysisData.regression.coefficients.map((coef, idx) => (
-                        <tr
-                          key={idx}
-                          className={coef.is_significant ? 'bg-emerald-50  text-gray-600' : ''}
-                        >
-                          <td className="border border-border px-4 py-2 font-mono">
-                            {coef.term}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {coef.coefficient.toFixed(4)}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {coef.std_error.toFixed(4)}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {coef.t_value.toFixed(4)}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-right">
-                            {coef.p_value.toFixed(4)}
-                          </td>
-                          <td className="border border-border px-4 py-2 text-center">
-                            {coef.is_significant ? (
-                              <span className="text-emerald-600 font-bold">✓</span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Gráficos Estatísticos */}
             {analysisData.plots_data && (

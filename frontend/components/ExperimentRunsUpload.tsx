@@ -550,12 +550,6 @@ export default function ExperimentRunsUpload({
           <p>Ao enviar um Excel, todos os dados existentes serão <strong>deletados e substituídos</strong> pelos dados do arquivo.</p>
         </div>
 
-        {/* Aviso sobre permissão de download */}
-        <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded">
-          <p className="font-semibold mb-1">💡 Problema ao baixar?</p>
-          <p>Se o navegador bloquear o download, permita downloads automáticos deste site nas configurações do navegador.</p>
-        </div>
-
         {uploadResult && (
           <div className={`p-4 rounded-lg border ${
             uploadResult.errors.length === 0 

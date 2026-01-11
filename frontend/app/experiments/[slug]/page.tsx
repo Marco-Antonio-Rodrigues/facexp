@@ -557,16 +557,18 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">Variáveis de Resposta</CardTitle>
-                  <Button 
-                    onClick={() => {
-                      setEditingResponseVar(null);
-                      setShowResponseVarModal(true);
-                    }}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  >
-                    + Adicionar Variável
-                  </Button>
+                  <CardTitle className="text-xl">Variável de Resposta</CardTitle>
+                  {responseVariables.length === 0 && (
+                    <Button 
+                      onClick={() => {
+                        setEditingResponseVar(null);
+                        setShowResponseVarModal(true);
+                      }}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      + Adicionar Variável
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -575,7 +577,15 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     Nenhuma variável de resposta cadastrada ainda
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <>
+                    {responseVariables.length >= 1 && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-900">
+                          ℹ️ Este experimento já possui uma variável de resposta. Cada experimento pode ter apenas <strong>uma variável de resposta</strong>.
+                        </p>
+                      </div>
+                    )}
+                    <div className="space-y-3">
                     {responseVariables.map((responseVar) => (
                       <div
                         key={responseVar.id}
@@ -624,7 +634,8 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                         </div>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -756,6 +767,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
       {/* Factor Modal */}
       <FactorModal
         experimentSlug={slug}
+        designType={experiment?.design_type}
         isOpen={showFactorModal}
         onClose={() => {
           setShowFactorModal(false);

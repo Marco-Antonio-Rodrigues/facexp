@@ -12,10 +12,10 @@ import { DesignTypeEnum, StatusEnum } from '@/types';
 
 const DESIGN_TYPE_OPTIONS = [
   { value: DesignTypeEnum.full_factorial, label: 'Fatorial Completo' },
-  { value: DesignTypeEnum.fractional_factorial, label: 'Fatorial Fracionado' },
-  { value: DesignTypeEnum.plackett_burman, label: 'Plackett-Burman' },
-  { value: DesignTypeEnum.box_behnken, label: 'Box-Behnken' },
-  { value: DesignTypeEnum.central_composite, label: 'Composto Central' },
+  // { value: DesignTypeEnum.fractional_factorial, label: 'Fatorial Fracionado' },
+  // { value: DesignTypeEnum.plackett_burman, label: 'Plackett-Burman' },
+  // { value: DesignTypeEnum.box_behnken, label: 'Box-Behnken' },
+  // { value: DesignTypeEnum.central_composite, label: 'Composto Central' },
 ];
 
 const STATUS_OPTIONS = [

@@ -160,7 +160,8 @@ class ExperimentAnalysisService:
             'effects': self._compute_effects(response_variable_name),
             'residuals': self._compute_residuals_analysis(response_variable_name),
             'plots_data': self._prepare_plots_data(response_variable_name),
-            'interaction_data': self._compute_interaction_plot_data(response_variable_name)
+            'interaction_data': self._compute_interaction_plot_data(response_variable_name),
+            'design_matrix': self._compute_design_matrix_table(response_variable_name)
         }
         
         # Clean NaN values for JSON compliance
@@ -773,4 +774,275 @@ class ExperimentAnalysisService:
             'combinations': interaction_combinations,
             'default_x': self.factors[0].symbol if len(self.factors) > 0 else None,
             'default_lines': self.factors[1].symbol if len(self.factors) > 1 else None
+        }
+    
+    def _compute_design_matrix_table(self, response_name: str) -> Dict[str, Any]:
+        """
+        Calcula a tabela de sinais (design matrix) com valores codificados,
+        interações, totais e efeitos.
+        
+        Returns:
+            Dictionary com headers, runs, totais, médias e efeitos
+        """
+        # Buscar runs ordenados por standard_order
+        runs = list(self.experiment.runs.filter(is_excluded=False).order_by('standard_order'))
+        
+        # Verificar se é um experimento 2^k (todos os fatores quantitativos com exatamente 2 níveis)
+        is_two_level_factorial = True
+        factor_level_mapping = {}  # {factor_id: {real_value: coded_value}}
+        
+        for factor in self.factors:
+            if factor.data_type != 'quantitative':
+                is_two_level_factorial = False
+                break
+            
+            # Coletar valores únicos deste fator
+            unique_values = set()
+            for run in runs:
+                val = run.factor_values.get(str(factor.id))
+                if val is not None:
+                    unique_values.add(float(val))
+            
+            if len(unique_values) != 2:
+                is_two_level_factorial = False
+                break
+            
+            # Mapear valores reais para -1 e +1
+            sorted_values = sorted(unique_values)
+            factor_level_mapping[factor.id] = {
+                sorted_values[0]: -1,  # Menor valor = -1
+                sorted_values[1]: +1   # Maior valor = +1
+            }
+        
+        # Construir headers
+        headers = []
+        
+        # 1. Intercepto
+        headers.append({
+            'symbol': 'I',
+            'name': 'Intercepto',
+            'type': 'intercept'
+        })
+        
+        # 2. Fatores
+        factor_symbols = []
+        for factor in self.factors:
+            header_data = {
+                'symbol': factor.symbol,
+                'name': factor.name,
+                'type': 'factor',
+                'factor_id': factor.id,
+                'data_type': factor.data_type
+            }
+            
+            # Adicionar mapeamento de níveis se for 2^k
+            if is_two_level_factorial and factor.id in factor_level_mapping:
+                # Criar mapeamento legível: {-1: valor_baixo, +1: valor_alto}
+                mapping = factor_level_mapping[factor.id]
+                reverse_mapping = {v: k for k, v in mapping.items()}
+                header_data['level_mapping'] = reverse_mapping
+            
+            headers.append(header_data)
+            factor_symbols.append(factor.symbol)
+        
+        # 3. Todas as interações (2ª ordem, 3ª ordem, ..., ordem completa)
+        from itertools import combinations
+        interaction_combinations = []
+        
+        if len(factor_symbols) > 1:
+            # Gerar interações de todas as ordens (2, 3, ..., n)
+            for order in range(2, len(factor_symbols) + 1):
+                for factor_combo in combinations(range(len(factor_symbols)), order):
+                    # Símbolos e nomes dos fatores na interação
+                    symbols = [factor_symbols[i] for i in factor_combo]
+                    interaction_symbol = ''.join(symbols)
+                    interaction_combinations.append((factor_combo, symbols, interaction_symbol))
+                    
+                    # Nomes dos fatores
+                    factor_names = [self.factors[i].name for i in factor_combo]
+                    
+                    headers.append({
+                        'symbol': interaction_symbol,
+                        'name': ' × '.join(factor_names),
+                        'type': 'interaction',
+                        'factors': symbols,
+                        'order': order
+                    })
+        
+        # 4. Resposta
+        headers.append({
+            'symbol': 'Y',
+            'name': response_name,
+            'type': 'response'
+        })
+        
+        # Construir linhas de runs
+        run_rows = []
+        for run in runs:
+            values = []
+            values_coded = []  # Valores codificados para exibição
+            
+            # Intercepto (sempre 1)
+            values.append(1)
+            values_coded.append(1)
+            
+            # Fatores
+            for factor in self.factors:
+                factor_value = run.factor_values.get(str(factor.id))
+                
+                if factor.data_type == 'categorical':
+                    # Para categóricos, mostrar como texto
+                    values.append(str(factor_value) if factor_value is not None else '')
+                    values_coded.append(str(factor_value) if factor_value is not None else '')
+                else:
+                    # Para quantitativos, usar valor real
+                    real_value = float(factor_value) if factor_value is not None else 0
+                    values.append(real_value)
+                    
+                    # Se for 2^k, também guardar o valor codificado
+                    if is_two_level_factorial and factor.id in factor_level_mapping:
+                        coded_value = factor_level_mapping[factor.id].get(real_value, 0)
+                        values_coded.append(coded_value)
+                    else:
+                        values_coded.append(real_value)
+            
+            # Interações (produto dos valores dos fatores envolvidos)
+            for factor_indices, symbols, _ in interaction_combinations:
+                # Pegar valores de todos os fatores na interação
+                interaction_value = 1
+                interaction_coded = 1
+                is_valid = True
+                
+                for idx in factor_indices:
+                    v = values[1 + idx]  # +1 por causa do intercepto
+                    v_coded = values_coded[1 + idx]
+                    
+                    if not isinstance(v, (int, float)):
+                        is_valid = False
+                        break
+                    
+                    interaction_value *= v
+                    if isinstance(v_coded, (int, float)):
+                        interaction_coded *= v_coded
+                
+                if is_valid:
+                    values.append(interaction_value)
+                    values_coded.append(interaction_coded)
+                else:
+                    values.append(None)
+                    values_coded.append(None)
+            
+            # Resposta
+            response_value = run.response_values.get(str(
+                next(r.id for r in self.responses if r.name == response_name)
+            ))
+            values.append(float(response_value) if response_value is not None else None)
+            values_coded.append(float(response_value) if response_value is not None else None)
+            
+            run_rows.append({
+                'run_order': run.run_order,
+                'standard_order': run.standard_order,
+                'is_center_point': run.is_center_point,
+                'values': values,
+                'values_coded': values_coded  # Valores codificados (-1, +1) para 2^k
+            })
+        
+        # Calcular totais (produto de valor_codificado × resposta, somado)
+        # Total = Σ(valor_codificado × Y)
+        n_cols = len(headers)
+        totals = []
+        
+        for col_idx in range(n_cols):
+            col_type = headers[col_idx]['type']
+            
+            if col_type == 'response':
+                # Soma das respostas
+                col_sum = sum(row['values'][col_idx] for row in run_rows 
+                             if row['values'][col_idx] is not None)
+                totals.append(col_sum)
+            elif col_type in ['intercept', 'factor', 'interaction']:
+                # Total = Σ(valor_codificado × resposta)
+                col_sum = 0
+                for row in run_rows:
+                    coded_val = row['values_coded'][col_idx]
+                    response_val = row['values'][-1]  # Última coluna é a resposta
+                    
+                    if isinstance(coded_val, (int, float)) and response_val is not None:
+                        col_sum += coded_val * response_val
+                
+                totals.append(col_sum)
+            else:
+                totals.append(None)
+        
+        # Calcular médias (total/n)
+        n_runs = len(run_rows)
+        means = []
+        for col_idx, total in enumerate(totals):
+            if total is not None and n_runs > 0:
+                means.append(total / n_runs)
+            else:
+                means.append(None)
+        
+        # Calcular efeitos
+        # Efeito = Total / (n/2) para experimentos fatoriais 2^k
+        effects = []
+        
+        for col_idx in range(n_cols):
+            col_type = headers[col_idx]['type']
+            total = totals[col_idx]
+            
+            if col_type == 'intercept':
+                # Intercepto não tem efeito
+                effects.append(None)
+            elif col_type in ['factor', 'interaction']:
+                # Efeito = Total / (n/2)
+                if total is not None and n_runs > 0:
+                    effect = total / (n_runs / 2)
+                    effects.append(effect)
+                else:
+                    effects.append(None)
+            else:
+                # Resposta não tem efeito
+                effects.append(None)
+        
+        # Calcular contribuição percentual de cada efeito
+        # Contribuição = (2^k × q²) / SST × 100%, onde q = efeito/2
+        contributions = []
+        
+        # Calcular SST = Σ(2^k × q²) para todos os efeitos
+        sst = 0
+        for col_idx in range(n_cols):
+            col_type = headers[col_idx]['type']
+            effect = effects[col_idx]
+            
+            if col_type in ['factor', 'interaction'] and effect is not None:
+                q = effect / 2
+                sst += n_runs * (q ** 2)
+        
+        # Calcular contribuição de cada efeito
+        for col_idx in range(n_cols):
+            col_type = headers[col_idx]['type']
+            effect = effects[col_idx]
+            
+            if col_type == 'intercept' or col_type == 'response':
+                contributions.append(None)
+            elif col_type in ['factor', 'interaction']:
+                if effect is not None and sst > 0:
+                    q = effect / 2
+                    contribution = (n_runs * (q ** 2)) / sst * 100
+                    contributions.append(contribution)
+                else:
+                    contributions.append(None)
+            else:
+                contributions.append(None)
+        
+        return {
+            'headers': headers,
+            'runs': run_rows,
+            'totals': totals,
+            'means': means,
+            'effects': effects,
+            'contributions': contributions,
+            'n_runs': n_runs,
+            'is_two_level_factorial': is_two_level_factorial
         }

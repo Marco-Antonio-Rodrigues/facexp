@@ -16,13 +16,14 @@ interface FactorFormData {
 
 interface FactorModalProps {
   experimentSlug: string;
+  designType?: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   editData?: FactorFormData & { id: number };
 }
 
-export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess, editData }: FactorModalProps) {
+export default function FactorModal({ experimentSlug, designType, isOpen, onClose, onSuccess, editData }: FactorModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -31,7 +32,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
     symbol: '',
     data_type: DataTypeEnum.quantitative,
     precision: 2,
-    levels_config: [-1, 0, 1],
+    levels_config: designType === 'full_factorial' ? [-1, 1] : [-1, 0, 1],
   });
 
   const [categoricalInput, setCategoricalInput] = useState(
@@ -43,7 +44,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
   const [quantitativeInput, setQuantitativeInput] = useState(
     editData && Array.isArray(editData.levels_config) && typeof editData.levels_config[0] === 'number'
       ? editData.levels_config.map(String).join('; ')
-      : '-1; 0; 1'
+      : designType === 'full_factorial' ? '-1; 1' : '-1; 0; 1'
   );
 
   // Reseta o formulário quando o modal abre/fecha ou editData muda
@@ -68,14 +69,14 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
           symbol: '',
           data_type: DataTypeEnum.quantitative,
           precision: 2,
-          levels_config: [-1, 0, 1],
+          levels_config: designType === 'full_factorial' ? [-1, 1] : [-1, 0, 1],
         });
         setCategoricalInput('');
-        setQuantitativeInput('-1; 0; 1');
+        setQuantitativeInput(designType === 'full_factorial' ? '-1; 1' : '-1; 0; 1');
       }
       setError('');
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, designType]);
 
   if (!isOpen) return null;
 
@@ -87,10 +88,12 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
     setFormData(prev => ({
       ...prev,
       data_type: dataType,
-      levels_config: dataType === DataTypeEnum.quantitative ? [-1, 0, 1] : [],
+      levels_config: dataType === DataTypeEnum.quantitative 
+        ? (designType === 'full_factorial' ? [-1, 1] : [-1, 0, 1]) 
+        : [],
     }));
     if (dataType === DataTypeEnum.quantitative) {
-      setQuantitativeInput('-1; 0; 1');
+      setQuantitativeInput(designType === 'full_factorial' ? '-1; 1' : '-1; 0; 1');
     }
   };
 
@@ -109,11 +112,21 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
         setError('Fatores categóricos precisam de pelo menos 2 níveis');
         return;
       }
+      // Validação para experimentos 2^k
+      if (designType === 'full_factorial' && levels.length !== 2) {
+        setError('Experimentos fatoriais completos 2^k requerem exatamente 2 níveis por fator');
+        return;
+      }
       formData.levels_config = levels;
     } else {
       const levels = quantitativeInput.split(';').map(l => parseFloat(l.trim())).filter(n => !isNaN(n));
       if (levels.length < 2) {
         setError('Fatores quantitativos precisam de pelo menos 2 níveis');
+        return;
+      }
+      // Validação para experimentos 2^k
+      if (designType === 'full_factorial' && levels.length !== 2) {
+        setError('Experimentos fatoriais completos 2^k requerem exatamente 2 níveis por fator');
         return;
       }
       // Ordenar os níveis
@@ -297,6 +310,14 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
               <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
                 <h4 className="font-semibold text-foreground">Configuração dos Níveis</h4>
                 
+                {designType === 'full_factorial' && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900 font-medium">
+                      ℹ️ Experimentos fatoriais 2^k requerem exatamente <strong>2 níveis</strong> (baixo e alto)
+                    </p>
+                  </div>
+                )}
+                
                 <div>
                   <label htmlFor="quantLevels" className="block text-sm font-semibold text-foreground mb-1">
                     Níveis (valores numéricos separados por ponto e vírgula)
@@ -306,12 +327,14 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                     type="text"
                     value={quantitativeInput}
                     onChange={(e) => setQuantitativeInput(e.target.value)}
-                    placeholder="Ex: -1; 0; 1 ou -2; -1; 0; 1; 2"
+                    placeholder={designType === 'full_factorial' ? 'Ex: -1; 1 ou 0; 100' : 'Ex: -1; 0; 1 ou -2; -1; 0; 1; 2'}
                     required
                     className="w-full font-mono"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Mínimo de 2 níveis. Comum: 3 níveis (-1; 0; 1) ou 5 níveis (-2; -1; 0; 1; 2)
+                    {designType === 'full_factorial' 
+                      ? 'Exatamente 2 níveis: valor baixo e valor alto' 
+                      : 'Mínimo de 2 níveis. Comum: 3 níveis (-1; 0; 1) ou 5 níveis (-2; -1; 0; 1; 2)'}
                   </p>
                 </div>
               </div>
@@ -322,6 +345,14 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
               <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
                 <h4 className="font-semibold text-foreground">Níveis Categóricos</h4>
                 
+                {designType === 'full_factorial' && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-900 font-medium">
+                      ℹ️ Experimentos fatoriais 2^k requerem exatamente <strong>2 níveis</strong> (baixo e alto)
+                    </p>
+                  </div>
+                )}
+                
                 <div>
                   <label htmlFor="categorical_levels" className="block text-sm font-semibold text-foreground mb-1">
                     Níveis (separados por ponto e vírgula) *
@@ -331,7 +362,7 @@ export default function FactorModal({ experimentSlug, isOpen, onClose, onSuccess
                     type="text"
                     value={categoricalInput}
                     onChange={(e) => setCategoricalInput(e.target.value)}
-                    placeholder="Ex: Catalisador A; Catalisador B; Catalisador C"
+                    placeholder={designType === 'full_factorial' ? 'Ex: Método A; Método B' : 'Ex: Catalisador A; Catalisador B; Catalisador C'}
                     required
                     className="w-full"
                   />

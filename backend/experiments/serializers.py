@@ -166,9 +166,29 @@ class FactorCreateSerializer(serializers.ModelSerializer):
         """
         Valida a estrutura do levels_config baseado no data_type.
         Aceita tanto dict (formato legado) quanto list (formato novo).
+        Para experimentos 2^k, valida que há exatamente 2 níveis.
         """
         if not isinstance(value, (dict, list)):
             raise serializers.ValidationError('levels_config must be a dictionary or list.')
+        
+        # Validar número de níveis para experimentos 2^k
+        experiment_id = self.context.get('experiment_id')
+        if experiment_id:
+            from .models import Experiment
+            experiment = Experiment.objects.get(id=experiment_id)
+            if experiment.design_type == 'full_factorial':
+                # Contar níveis
+                num_levels = 0
+                if isinstance(value, list):
+                    num_levels = len(value)
+                elif isinstance(value, dict):
+                    num_levels = len(value.get('levels', []))
+                
+                if num_levels != 2:
+                    raise serializers.ValidationError(
+                        'Experimentos fatoriais completos 2^k requerem exatamente 2 níveis por fator (baixo e alto).'
+                    )
+        
         return value
 
 
@@ -199,6 +219,31 @@ class FactorUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f'Factor with symbol "{value}" already exists in this experiment.'
             )
+        return value
+    
+    def validate_levels_config(self, value):
+        """
+        Valida a estrutura do levels_config baseado no data_type.
+        Para experimentos 2^k, valida que há exatamente 2 níveis.
+        """
+        if not isinstance(value, (dict, list)):
+            raise serializers.ValidationError('levels_config must be a dictionary or list.')
+        
+        # Validar número de níveis para experimentos 2^k
+        instance = self.instance
+        if instance and instance.experiment.design_type == 'full_factorial':
+            # Contar níveis
+            num_levels = 0
+            if isinstance(value, list):
+                num_levels = len(value)
+            elif isinstance(value, dict):
+                num_levels = len(value.get('levels', []))
+            
+            if num_levels != 2:
+                raise serializers.ValidationError(
+                    'Experimentos fatoriais completos 2^k requerem exatamente 2 níveis por fator (baixo e alto).'
+                )
+        
         return value
 
 
@@ -252,6 +297,19 @@ class ResponseVariableCreateSerializer(serializers.ModelSerializer):
             'name',
             'unit',
         ]
+    
+    def validate(self, attrs):
+        """
+        Valida que o experimento não tenha mais de uma variável de resposta.
+        """
+        experiment_id = self.context.get('experiment_id')
+        if experiment_id:
+            existing_count = ResponseVariable.objects.filter(experiment_id=experiment_id).count()
+            if existing_count >= 1:
+                raise serializers.ValidationError(
+                    'Este experimento já possui uma variável de resposta. Cada experimento pode ter apenas uma variável de resposta.'
+                )
+        return attrs
     
     def validate_name(self, value):
         """

@@ -53,6 +53,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   const [editingRunId, setEditingRunId] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
   const [expandedCombination, setExpandedCombination] = useState<number | null>(null);
+  const [allExpanded, setAllExpanded] = useState(false);
 
   useEffect(() => {
     params.then((p) => {
@@ -287,6 +288,30 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   console.log('Grouped combinations:', groupedCombinations.length);
   console.log('First group:', groupedCombinations[0]);
 
+  // Funções para expandir/retrair todos
+  const expandAll = () => {
+    setAllExpanded(true);
+    setExpandedCombination(-1); // Valor especial para "todos expandidos"
+  };
+
+  const collapseAll = () => {
+    setAllExpanded(false);
+    setExpandedCombination(null);
+  };
+
+  const toggleCombination = (standardOrder: number) => {
+    if (allExpanded) {
+      setAllExpanded(false);
+    }
+    setExpandedCombination(
+      expandedCombination === standardOrder ? null : standardOrder
+    );
+  };
+
+  const isCombinationExpanded = (standardOrder: number) => {
+    return allExpanded || expandedCombination === standardOrder || expandedCombination === -1;
+  };
+
   const exportToExcel = () => {
     // Prepara os dados para exportação
     const exportData = (runs || []).map(run => {
@@ -326,29 +351,29 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-slate-600">Carregando corridas...</p>
+          <p className="mt-4 text-muted-foreground">Carregando corridas...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <Button
               onClick={() => router.push(`/experiments/${slug}`)}
-              className="mb-4 bg-slate-700 text-white hover:bg-slate-800"
+              className="mb-4 bg-muted text-foreground hover:bg-muted/80"
             >
               ← Voltar ao Experimento
             </Button>
-            <h1 className="text-3xl font-bold text-slate-900">Corridas Experimentais</h1>
-            <p className="text-slate-600 mt-2">
+            <h1 className="text-3xl font-bold text-foreground">Corridas Experimentais</h1>
+            <p className="text-muted-foreground mt-2">
               {runs?.length || 0} corridas • {runs?.filter(r => r.is_complete).length || 0} completas
             </p>
           </div>
@@ -374,43 +399,65 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
         </div>
 
         {/* Runs Table */}
-        <Card className="border-slate-200 shadow-lg">
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl text-slate-900">Matriz Experimental</CardTitle>
-            <p className="text-sm text-slate-600 mt-2">
-              As corridas estão agrupadas por combinação de fatores. Clique em uma linha para ver todas as réplicas daquela combinação.
-            </p>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="text-xl">Matriz Experimental</CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  As corridas estão agrupadas por combinação de fatores. Clique em uma linha para ver todas as réplicas daquela combinação.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={expandAll}
+                  variant="outline"
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  ⬇️ Expandir Todos
+                </Button>
+                <Button
+                  onClick={collapseAll}
+                  variant="outline"
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  ⬆️ Retrair Todos
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-slate-100">
-                    <th className="border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">
+                  <tr className="bg-muted/50">
+                    <th className="border border-border px-3 py-2 text-xs font-semibold text-foreground text-center">
                       Ordem Padrão
                     </th>
-                    <th className="border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">
+                    <th className="border border-border px-3 py-2 text-xs font-semibold text-foreground text-center">
                       Ordem Execução
                     </th>
                     {factors.map((factor) => (
-                      <th key={factor.id} className="border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">
+                      <th key={factor.id} className="border border-border px-3 py-2 text-sm font-semibold text-foreground bg-muted/30">
                         {factor.symbol}
-                        <div className="text-xs font-normal text-slate-500">{factor.name}</div>
+                        <div className="text-xs font-normal text-muted-foreground">{factor.name}</div>
                       </th>
                     ))}
                     {responseVars.map((rv) => (
-                      <th key={rv.id} className="border border-slate-300 px-3 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50">
+                      <th key={rv.id} className="border border-border px-3 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50">
                         {rv.name}
                         {rv.unit && <div className="text-xs font-normal text-emerald-600">({rv.unit})</div>}
                       </th>
                     ))}
-                    <th className="border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">
+                    <th className="border border-border px-3 py-2 text-xs font-semibold text-foreground text-center">
                       Progresso
                     </th>
-                    <th className="border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">
+                    <th className="border border-border px-3 py-2 text-xs font-semibold text-foreground text-center">
                       Status
                     </th>
-                    <th className="border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">
+                    <th className="border border-border px-3 py-2 text-xs font-semibold text-foreground text-center">
                       Ações
                     </th>
                   </tr>
@@ -420,36 +467,34 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
                     <React.Fragment key={`combo-${combination.standard_order}`}>
                       {/* Combination Row */}
                       <tr
-                        className="hover:bg-blue-50 bg-blue-100/70 font-semibold cursor-pointer border-l-4 border-blue-500"
-                        onClick={() => setExpandedCombination(
-                          expandedCombination === combination.standard_order ? null : combination.standard_order
-                        )}
+                        className="hover:bg-blue-50 bg-blue-100/90 font-semibold cursor-pointer border-l-4 border-blue-500"
+                        onClick={() => toggleCombination(combination.standard_order)}
                       >
-                        <td className="border border-slate-300 px-3 py-2 text-center text-sm">
+                        <td className="border border-border px-3 py-2 text-center text-sm ">
                           <div className="flex items-center justify-center gap-2">
-                            <span className="text-blue-700">{expandedCombination === combination.standard_order ? '▼' : '▶'}</span>
-                            <span>{Math.min(...combination.runs.map(r => r.standard_order))}</span>
+                            <span className="text-blue-700">{isCombinationExpanded(combination.standard_order) ? '▼' : '▶'}</span>
+                            <span className="font-semibold text-slate-800">{Math.min(...combination.runs.map(r => r.standard_order))}</span>
                           </div>
                         </td>
-                        <td className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-600">
+                        <td className="border border-border px-3 py-2 text-center text-sm text-slate-800">
                           {combination.runs.map(r => r.run_order).sort((a, b) => a - b).join(', ')}
                         </td>
                         {factors.map((factor) => (
-                          <td key={factor.id} className="border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-900">
+                          <td key={factor.id} className="border border-border px-3 py-2 text-center text-sm font-semibold text-slate-800">
                             {combination.factor_values?.[factor.id] ?? combination.factor_values?.[factor.id.toString()] ?? '-'}
                           </td>
                         ))}
                         {responseVars.map((rv) => (
-                          <td key={rv.id} className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400 bg-blue-50/50">
+                          <td key={rv.id} className="border border-border px-3 py-2 text-center text-xs text-muted-foreground bg-blue-50/50">
                             -
                           </td>
                         ))}
-                        <td className="border border-slate-300 px-3 py-2 text-center text-sm">
+                        <td className="border border-border px-3 py-2 text-center text-sm">
                           <span className="px-3 py-1.5 bg-blue-600 text-white rounded-md font-semibold text-xs shadow-sm">
                             {combination.completedCount}/{combination.totalCount} réplicas
                           </span>
                         </td>
-                        <td className="border border-slate-300 px-3 py-2 text-center text-xs">
+                        <td className="border border-border px-3 py-2 text-center text-xs">
                           {combination.completedCount === combination.totalCount ? (
                             <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-semibold">
                               ✓ Completo
@@ -459,44 +504,44 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
                               ⚠ Parcial
                             </span>
                           ) : (
-                            <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded">
+                            <span className="px-2 py-1 bg-muted text-muted-foreground rounded">
                               ○ Pendente
                             </span>
                           )}
                         </td>
-                        <td className="border border-slate-300 px-3 py-2 text-center">
+                        <td className="border border-border px-3 py-2 text-center">
                           <span className="text-xs text-blue-600 font-medium">
-                            {expandedCombination === combination.standard_order ? 'Clique para ocultar' : `${combination.totalCount} réplica(s)`}
+                            {isCombinationExpanded(combination.standard_order) ? 'Clique para ocultar' : `${combination.totalCount} réplica(s)`}
                           </span>
                         </td>
                       </tr>
                       
                       {/* Expanded Replicate Rows */}
-                      {expandedCombination === combination.standard_order && combination.runs
+                      {isCombinationExpanded(combination.standard_order) && combination.runs
                         .sort((a, b) => a.replicate_number - b.replicate_number)
                         .map((run) => (
                         <tr
                           key={run.id}
-                          className={`hover:bg-slate-50 bg-white border-l-4 border-blue-200 ${run.is_excluded ? 'opacity-50 bg-red-50' : ''} ${
+                          className={`hover:bg-muted/30 bg-card border-l-4 border-blue-200 ${run.is_excluded ? 'opacity-50 bg-red-50' : ''} ${
                             run.is_center_point ? 'bg-blue-50' : ''
                           }`}
                         >
-                          <td className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-500 pl-8 bg-slate-50/50">
+                          <td className="border border-border px-3 py-2 text-center text-xs text-muted-foreground pl-8 bg-muted/20">
                             <div className="flex items-center justify-center gap-1">
                               <span className="text-blue-400">↳</span>
                               <span>Réplica {run.replicate_number}</span>
                             </div>
                           </td>
-                          <td className="border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-blue-700">
+                          <td className="border border-border px-3 py-2 text-center text-sm font-semibold text-blue-700">
                             {run.run_order}
                           </td>
                           {factors.map((factor) => (
-                            <td key={factor.id} className="border border-slate-300 px-3 py-2 text-center text-xs text-slate-400 bg-slate-50/30">
+                            <td key={factor.id} className="border border-border px-3 py-2 text-center text-xs text-muted-foreground bg-muted/20">
                               {run.factor_values?.[factor.id] ?? run.factor_values?.[factor.id.toString()] ?? '-'}
                             </td>
                           ))}
                           {responseVars.map((rv) => (
-                            <td key={rv.id} className="border border-slate-300 px-3 py-2 text-center text-sm bg-emerald-50/50">
+                            <td key={rv.id} className="border border-border px-3 py-2 text-center text-sm bg-emerald-50/50">
                               {editingRunId === run.id ? (
                                 <input
                                   type="number"
@@ -505,17 +550,17 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
                                   onChange={(e) =>
                                     setEditValues({ ...editValues, [rv.id.toString()]: e.target.value })
                                   }
-                                  className="w-full px-2 py-1 border border-slate-300 rounded text-center"
+                                  className="w-full px-2 py-1 border border-border rounded text-center"
                                   placeholder="-"
                                 />
                               ) : (
-                                <span className={(run.response_values?.[rv.id] ?? run.response_values?.[rv.id.toString()]) ? 'font-semibold text-emerald-700' : 'text-slate-400'}>
+                                <span className={(run.response_values?.[rv.id] ?? run.response_values?.[rv.id.toString()]) ? 'font-semibold text-emerald-700' : 'text-muted-foreground'}>
                                   {run.response_values?.[rv.id] ?? run.response_values?.[rv.id.toString()] ?? '-'}
                                 </span>
                               )}
                             </td>
                           ))}
-                          <td className="border border-slate-300 px-3 py-2 text-center text-xs">
+                          <td className="border border-border px-3 py-2 text-center text-xs">
                             {run.is_excluded ? (
                               <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-semibold">
                                 Excluído
@@ -529,12 +574,12 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
                                 Parcial
                               </span>
                             ) : (
-                              <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded">
+                              <span className="px-2 py-1 bg-muted text-muted-foreground rounded">
                                 Pendente
                               </span>
                             )}
                           </td>
-                          <td className="border border-slate-300 px-3 py-2 text-center">
+                          <td className="border border-border px-3 py-2 text-center">
                             <div className="flex items-center justify-center gap-1">
                               {editingRunId === run.id ? (
                                 <>
@@ -584,8 +629,8 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
             {runs.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📊</div>
-                <p className="text-lg font-semibold text-slate-900 mb-2">Nenhuma corrida gerada ainda</p>
-                <p className="text-sm text-slate-600 mb-6">Gere as corridas experimentais para começar a coletar dados</p>
+                <p className="text-lg font-semibold text-foreground mb-2">Nenhuma corrida gerada ainda</p>
+                <p className="text-sm text-muted-foreground mb-6">Gere as corridas experimentais para começar a coletar dados</p>
                 <Button
                   onClick={handleGenerateRuns}
                   disabled={isGeneratingRuns || factors.length === 0}
@@ -643,12 +688,12 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
         {runs.length > 0 && (
           <Card className="border-slate-200 shadow-lg mt-6">
             <CardHeader>
-              <CardTitle className="text-lg text-slate-900">Legenda e Instruções</CardTitle>
+              <CardTitle className="text-lg text-slate-200">Legenda e Instruções</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-semibold text-slate-900 mb-2 text-sm">Como Funciona o Agrupamento:</h4>
-                <p className="text-sm text-slate-600 mb-2">
+                <h4 className="font-semibold text-slate-200 mb-2 text-sm">Como Funciona o Agrupamento:</h4>
+                <p className="text-sm text-slate-300 mb-2">
                   As linhas <span className="bg-blue-100 px-1 py-0.5 rounded font-semibold">azuis</span> representam combinações únicas de fatores.
                   Clique em uma combinação para expandir e ver todas as réplicas (repetições) daquela condição experimental.
                 </p>
@@ -656,25 +701,25 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm pt-3 border-t border-slate-200">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-blue-50 border border-slate-300"></div>
-                  <span className="text-slate-700">Ponto Central</span>
+                  <span>Ponto Central</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold">
                     ✓ Completo
                   </div>
-                  <span className="text-slate-700">Todos os valores preenchidos</span>
+                  <span>Todos os valores preenchidos</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold">
                     ⚠ Parcial
                   </div>
-                  <span className="text-slate-700">Alguns valores preenchidos</span>
+                  <span>Alguns valores preenchidos</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold">
                     Excluído
                   </div>
-                  <span className="text-slate-700">Não será usado nas análises</span>
+                  <span>Não será usado nas análises</span>
                 </div>
               </div>
             </CardContent>
