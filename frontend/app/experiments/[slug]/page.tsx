@@ -578,13 +578,6 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                   </div>
                 ) : (
                   <>
-                    {responseVariables.length >= 1 && (
-                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-900">
-                          ℹ️ Este experimento já possui uma variável de resposta. Cada experimento pode ter apenas <strong>uma variável de resposta</strong>.
-                        </p>
-                      </div>
-                    )}
                     <div className="space-y-3">
                     {responseVariables.map((responseVar) => (
                       <div
@@ -635,6 +628,13 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                       </div>
                     ))}
                     </div>
+                    {responseVariables.length >= 1 && (
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-900">
+                          ℹ️ Este experimento já possui uma variável de resposta. Cada experimento pode ter apenas <strong>uma variável de resposta</strong>.
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </CardContent>

@@ -148,15 +148,6 @@ class ResponseVariableModelTest(TestCase):
         )
         self.assertEqual(response2.name, self.response.name)
     
-    def test_optimization_goal_choices(self):
-        """Testa objetivos de otimização válidos."""
-        for goal, _ in ResponseVariable.OptimizationGoal.choices:
-            response = ResponseVariableFactory(
-                experiment=self.experiment,
-                optimization_goal=goal
-            )
-            self.assertEqual(response.optimization_goal, goal)
-    
     def test_str_representation(self):
         """Testa representação string."""
         self.assertEqual(str(self.response), self.response.name)

@@ -64,7 +64,6 @@ class ExperimentViewSetTest(APITestCase):
             'title': 'Updated Title',
             'description': experiment.description,
             'design_type': experiment.design_type,
-            'status': 'design_ready'
         }
         
         response = self.client.put(url, data)
@@ -72,7 +71,8 @@ class ExperimentViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         experiment.refresh_from_db()
         self.assertEqual(experiment.title, 'Updated Title')
-        self.assertEqual(experiment.status, 'design_ready')
+        # Status não é atualizável via API, permanece como criado
+        self.assertEqual(experiment.status, 'draft')
     
     def test_delete_experiment(self):
         """Testa deleção de experimento."""
@@ -176,7 +176,7 @@ class FactorViewSetTest(APITestCase):
             'symbol': 'T',
             'data_type': 'quantitative',
             'precision': 2,
-            'levels_config': {'low': -1, 'high': 1}
+            'levels_config': [-1, 1]  # 2 níveis obrigatórios como lista
         }
         
         response = self.client.post(url, data, format='json')
@@ -218,8 +218,8 @@ class FactorViewSetTest(APITestCase):
         """Testa criação em lote de fatores."""
         url = reverse('experiment-factors-bulk-create', kwargs={'experiment_slug': self.experiment.slug})
         data = [
-            {'name': 'Factor 1', 'symbol': 'X1', 'data_type': 'quantitative', 'precision': 2, 'levels_config': {}},
-            {'name': 'Factor 2', 'symbol': 'X2', 'data_type': 'quantitative', 'precision': 2, 'levels_config': {}},
+            {'name': 'Factor 1', 'symbol': 'X1', 'data_type': 'quantitative', 'precision': 2, 'levels_config': [-1, 1]},
+            {'name': 'Factor 2', 'symbol': 'X2', 'data_type': 'quantitative', 'precision': 2, 'levels_config': [0, 10]},
         ]
         
         response = self.client.post(url, data, format='json')
@@ -286,15 +286,15 @@ class ResponseVariableViewSetTest(APITestCase):
     def test_bulk_create_response_variables(self):
         """Testa criação em lote de variáveis de resposta."""
         url = reverse('experiment-response-variables-bulk-create', kwargs={'experiment_slug': self.experiment.slug})
+        # Cada experimento pode ter apenas 1 variável de resposta
         data = [
-            {'name': 'Yield', 'unit': '%', 'optimization_goal': 'maximize'},
-            {'name': 'Cost', 'unit': '$', 'optimization_goal': 'minimize'},
+            {'name': 'Yield', 'unit': '%'},
         ]
         
         response = self.client.post(url, data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(ResponseVariable.objects.count(), 2)
+        self.assertEqual(ResponseVariable.objects.count(), 1)
 
 
 class ExperimentRunViewSetTest(APITestCase):

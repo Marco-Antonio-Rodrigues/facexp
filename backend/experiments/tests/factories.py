@@ -45,7 +45,6 @@ class ResponseVariableFactory(DjangoModelFactory):
     
     name = factory.Sequence(lambda n: f'Response {n}')
     unit = 'kg'
-    optimization_goal = ResponseVariable.OptimizationGoal.MAXIMIZE
     experiment = factory.SubFactory(ExperimentFactory)
 
 
