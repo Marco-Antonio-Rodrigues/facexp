@@ -85,6 +85,8 @@ npm run dev
 Acesse:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
+- **Documentação da API (Swagger)**: http://localhost:8000/api/schema/swagger-ui/
+- **Documentação da API (ReDoc)**: http://localhost:8000/api/schema/redoc/
 - **Admin Django**: http://localhost:8000/admin
 
 ## 📖 Documentação
