@@ -15,17 +15,6 @@ urlpatterns = [
         name="resend-email-confirmation",
     ),
     path("user/confirm-email/", views.confirm_email, name="confirm_email"),
-    # password
-    path(
-        "user/password_reset/",
-        views.password_reset_request,
-        name="password_reset_request",
-    ),
-    path(
-        "user/password_reset/confirm/",
-        views.password_reset_confirm,
-        name="password_reset_confirm",
-    ),
     # token - login tradicional (apenas para admins)
     path("token/", views.login, name="token"),
     path("token/refresh/", TokenRefreshView.as_view(), name="refresh"),

@@ -4,14 +4,9 @@ from random import randint
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
-from django.template.loader import render_to_string
 from django.utils import timezone
-from django.utils.encoding import force_bytes, force_str
-from django.utils.html import strip_tags
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -291,60 +286,4 @@ def confirm_email(request: Request):
         )
 
 
-@extend_schema(tags=['Auth'])
-@api_view(["POST"])
-def password_reset_request(request: Request):
-    email = request.data.get("email")
-    if not email:
-        return Response({"message": "Email é obrigatório."}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        user = CustomUser.objects.get(email=email)
-    except CustomUser.DoesNotExist:
-        return Response({"message": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
-
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    reset_link = f"{settings.FRONTEND_URL}/reset-password/?uid={force_str(uid)}&token={token}"
-
-    subject = "Redefinição de Senha"
-    html_message = render_to_string("users/password_reset_email.html", {"reset_link": reset_link})
-    plain_message = strip_tags(html_message)
-
-    send_mail(
-        subject,
-        plain_message,
-        settings.EMAIL_HOST_USER,
-        [user.email],
-        html_message=html_message,
-        fail_silently=False,
-    )
-
-    return Response({"message": "Email de redefinição de senha enviado."}, status=status.HTTP_200_OK)
-
-
-@extend_schema(tags=['Auth'])
-@api_view(["POST"])
-def password_reset_confirm(request: Request):
-    uid = request.data.get("uid")
-    token = request.data.get("token")
-    new_password = request.data.get("new_password")
-
-    if not all([uid, token, new_password]):
-        return Response({"message": "Informações incompletas."}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        uid = force_str(urlsafe_base64_decode(uid))
-        user = CustomUser.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-        user = None
-
-    if user is not None and default_token_generator.check_token(user, token):
-        user.set_password(new_password)
-        user.save()
-        return Response({"message": "Senha redefinida com sucesso."}, status=status.HTTP_200_OK)
-    else:
-        return Response(
-            {"message": "Token inválido ou expirado."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
