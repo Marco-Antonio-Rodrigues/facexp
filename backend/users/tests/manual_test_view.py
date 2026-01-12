@@ -20,8 +20,6 @@ class RealEmailUserTest(TestCase):
 
         # views that send email
         self.user_url = reverse("users:user")
-        self.password_reset_request_url = reverse("users:password_reset_request")
-        self.resend_confirmation_email_url = reverse("users:resend-email-confirmation")
 
     def register_user(self, user, function=""):
         response = self.client.post(self.user_url, user)
@@ -47,14 +45,3 @@ class RealEmailUserTest(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "Email de confirmação reenviado.")
-
-    def test_password_reset_request(self):
-        self.register_user(self.user)
-        user = User.objects.get(email=self.user["email"])
-        user.is_active = True
-        user.email_confirmed = True
-        user.save()
-
-        response = self.client.post(self.password_reset_request_url, {"email": self.user["email"]})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)

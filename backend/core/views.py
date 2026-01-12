@@ -24,8 +24,6 @@ def api_root(request, format=None):
             'user': reverse('users:user', request=request, format=format),
             'resend-email-confirmation': reverse('users:resend-email-confirmation', request=request, format=format),
             'confirm-email': reverse('users:confirm_email', request=request, format=format),
-            'password-reset': reverse('users:password_reset_request', request=request, format=format),
-            'password-reset-confirm': reverse('users:password_reset_confirm', request=request, format=format),
         },
         'auth': {
             'login-admin': reverse('users:token', request=request, format=format),

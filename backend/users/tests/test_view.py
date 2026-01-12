@@ -17,7 +17,6 @@ class UserTests(APITestCase):
         self.logout_url = reverse("users:revoke")
         self.resend_confirmation_email_url = reverse("users:resend-email-confirmation")
         self.confirm_email_url = reverse("users:confirm_email")
-        self.password_reset_request_url = reverse("users:password_reset_request")
 
         # Criar usuário ativo e inativo com factories
         self.user = CustomUserFactory(
@@ -148,18 +147,6 @@ class UserTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_password_reset_request(self):
-        # Testando o envio do pedido de redefinição de senha
-        response = self.client.post(self.password_reset_request_url, {"email": self.user.email})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Testando pedido de redefinição para um e-mail que não existe
-        response_user_no_exist = self.client.post(self.password_reset_request_url, {"email": "noexist@example.com"})
-        self.assertEqual(response_user_no_exist.status_code, status.HTTP_404_NOT_FOUND)
-
-        # Testando pedido de redefinição de senha sem fornecer dados
-        response_no_body = self.client.post(self.password_reset_request_url, {})
-        self.assertEqual(response_no_body.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_user_with_valid_data(self):
         tokens = self.prepare_login(self.user)
