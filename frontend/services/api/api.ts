@@ -5,19 +5,6 @@
  * Documentação automática da API
  * OpenAPI spec version: 1.0.0
  */
-// @ts-nocheck
-/* eslint-disable */
-/*
-import {
-  useMutation
-} from '@tanstack/react-query';
-import type {
-  MutationFunction,
-  UseMutationOptions,
-  UseMutationResult
-} from '@tanstack/react-query';
-*/
-
 import type {
   TokenRefresh
 } from '../../types';
@@ -53,67 +40,20 @@ type NonReadonly<T> = [T] extends [UnionToIntersection<T>] ? {
 
 
 
-
+  export const getApi = () => {
 /**
  * Takes a refresh type JSON web token and returns an access type JSON web
 token if the refresh token is valid.
  */
-export const apiUsersTokenRefreshCreate = (
+const apiUsersTokenRefreshCreate = (
     tokenRefresh: NonReadonly<TokenRefresh>,
- signal?: AbortSignal
-) => {
-      
-      
+ ) => {
       return customInstance<TokenRefresh>(
       {url: `/api/users/token/refresh/`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: tokenRefresh, signal
+      data: tokenRefresh
     },
       );
     }
-  
-
-
-export const getApiUsersTokenRefreshCreateMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof apiUsersTokenRefreshCreate>>, TError,{data: NonReadonly<TokenRefresh>}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof apiUsersTokenRefreshCreate>>, TError,{data: NonReadonly<TokenRefresh>}, TContext> => {
-
-const mutationKey = ['apiUsersTokenRefreshCreate'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof apiUsersTokenRefreshCreate>>, {data: NonReadonly<TokenRefresh>}> = (props) => {
-          const {data} = props ?? {};
-
-          return  apiUsersTokenRefreshCreate(data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ApiUsersTokenRefreshCreateMutationResult = NonNullable<Awaited<ReturnType<typeof apiUsersTokenRefreshCreate>>>
-    export type ApiUsersTokenRefreshCreateMutationBody = NonReadonly<TokenRefresh>
-    export type ApiUsersTokenRefreshCreateMutationError = unknown
-
-    export const useApiUsersTokenRefreshCreate = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof apiUsersTokenRefreshCreate>>, TError,{data: NonReadonly<TokenRefresh>}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof apiUsersTokenRefreshCreate>>,
-        TError,
-        {data: NonReadonly<TokenRefresh>},
-        TContext
-      > => {
-
-      const mutationOptions = getApiUsersTokenRefreshCreateMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
+  return {apiUsersTokenRefreshCreate}};
+export type ApiUsersTokenRefreshCreateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getApi>['apiUsersTokenRefreshCreate']>>>

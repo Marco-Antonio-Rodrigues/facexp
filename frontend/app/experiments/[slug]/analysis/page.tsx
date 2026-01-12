@@ -95,7 +95,6 @@ interface ResponseVariable {
   name: string;
   description?: string;
   unit?: string;
-  optimization_goal?: string;
 }
 
 // Função auxiliar para formatar números de forma inteligente

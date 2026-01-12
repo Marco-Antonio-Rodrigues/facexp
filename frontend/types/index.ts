@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './apiExperimentsAnalysisRetrieveParams';
 export * from './dataTypeEnum';
 export * from './designMatrix';
 export * from './designTypeEnum';

@@ -31,6 +31,10 @@ export interface ExperimentRunList {
   replicate_number?: number;
   /** Whether this run is a center point (for replication) */
   is_center_point?: boolean;
+  /** Dictionary mapping factor IDs to their values for this run */
+  factor_values?: unknown;
+  /** Dictionary mapping response variable IDs to their measured values */
+  response_values?: unknown;
   /** Whether to exclude this run from analysis (e.g., outlier) */
   is_excluded?: boolean;
   readonly has_responses: string;

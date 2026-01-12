@@ -5,20 +5,6 @@
  * Documentação automática da API
  * OpenAPI spec version: 1.0.0
  */
-// @ts-nocheck
-/* eslint-disable */
-/*
-import {
-  useQuery
-} from '@tanstack/react-query';
-import type {
-  QueryFunction,
-  QueryKey,
-  UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
-*/
-
 import type {
   RootRetrieve200
 } from '../../types';
@@ -27,73 +13,18 @@ import { customInstance } from '../../lib/api-client';
 
 
 
-
+  export const getCore = () => {
 /**
  * Lista todos os endpoints e recursos disponíveis no sistema.
  * @summary Navegação da API (Root)
  */
-export const rootRetrieve = (
+const rootRetrieve = (
     
- signal?: AbortSignal
-) => {
-      
-      
+ ) => {
       return customInstance<RootRetrieve200>(
-      {url: `/`, method: 'GET', signal
+      {url: `/`, method: 'GET'
     },
       );
     }
-  
-
-
-
-export const getRootRetrieveQueryKey = () => {
-    return [
-    `/`
-    ] as const;
-    }
-
-    
-export const getRootRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof rootRetrieve>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof rootRetrieve>>, TError, TData>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getRootRetrieveQueryKey();
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof rootRetrieve>>> = ({ signal }) => rootRetrieve(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof rootRetrieve>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type RootRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof rootRetrieve>>>
-export type RootRetrieveQueryError = unknown
-
-
-/**
- * @summary Navegação da API (Root)
- */
-
-export function useRootRetrieve<TData = Awaited<ReturnType<typeof rootRetrieve>>, TError = unknown>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof rootRetrieve>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getRootRetrieveQueryOptions(options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-
+  return {rootRetrieve}};
+export type RootRetrieveResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCore>['rootRetrieve']>>>

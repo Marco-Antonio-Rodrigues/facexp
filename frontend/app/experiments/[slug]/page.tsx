@@ -592,20 +592,6 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                                 {responseVar.unit}
                               </span>
                             )}
-                            <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                              responseVar.optimization_goal === OptimizationGoalEnum.maximize
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                : responseVar.optimization_goal === OptimizationGoalEnum.minimize
-                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
-                                : responseVar.optimization_goal === OptimizationGoalEnum.target
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                                : 'bg-muted text-muted-foreground border border-border'
-                            }`}>
-                              {responseVar.optimization_goal === OptimizationGoalEnum.maximize && '📈 Maximizar'}
-                              {responseVar.optimization_goal === OptimizationGoalEnum.minimize && '📉 Minimizar'}
-                              {responseVar.optimization_goal === OptimizationGoalEnum.target && '🎯 Alvo'}
-                              {responseVar.optimization_goal === OptimizationGoalEnum.none && '📊 Monitorar'}
-                            </span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -832,8 +818,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
         editData={editingResponseVar ? {
           id: editingResponseVar.id,
           name: editingResponseVar.name,
-          unit: editingResponseVar.unit ?? '',
-          optimization_goal: editingResponseVar.optimization_goal ?? OptimizationGoalEnum.maximize
+          unit: editingResponseVar.unit ?? ''
         } : undefined}
       />
 

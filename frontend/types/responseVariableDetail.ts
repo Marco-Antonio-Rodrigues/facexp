@@ -5,7 +5,6 @@
  * Documentação automática da API
  * OpenAPI spec version: 1.0.0
  */
-import type { OptimizationGoalEnum } from './optimizationGoalEnum';
 
 /**
  * Serializer completo para detalhes da variável de resposta.
@@ -19,13 +18,6 @@ export interface ResponseVariableDetail {
    * @maxLength 50
    */
   unit?: string;
-  /** Whether to maximize, minimize, or target this response
-
-* `maximize` - Maximize
-* `minimize` - Minimize
-* `target` - Target
-* `none` - Nenhum(a/as) */
-  optimization_goal?: OptimizationGoalEnum;
   readonly experiment: number;
   readonly experiment_title: string;
   /** @pattern ^[-a-zA-Z0-9_]+$ */
