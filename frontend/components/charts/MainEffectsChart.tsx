@@ -27,8 +27,8 @@ export default function MainEffectsChart({ data, title = 'Efeitos Principais' }:
     }
   }));
 
-  // Usa os níveis do primeiro fator como categorias (assumindo design balanceado)
-  const categories = data[factors[0]]?.levels.map(String) || [];
+  // Usa labels genéricos para níveis (aplicável a todos os fatores)
+  const categories = ['Nível Baixo', 'Nível Alto'];
 
   const option = {
     title: {
@@ -58,7 +58,7 @@ export default function MainEffectsChart({ data, title = 'Efeitos Principais' }:
     grid: {
       left: '3%',
       right: '4%',
-      bottom: '3%',
+      bottom: '12%',
       top: '20%',
       containLabel: true
     },
@@ -67,7 +67,7 @@ export default function MainEffectsChart({ data, title = 'Efeitos Principais' }:
       data: categories,
       name: 'Nível',
       nameLocation: 'middle',
-      nameGap: 30,
+      nameGap: 40,
       nameTextStyle: {
         color: '#e5e7eb',
         fontSize: 12
