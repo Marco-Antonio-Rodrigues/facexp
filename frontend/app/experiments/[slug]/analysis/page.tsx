@@ -14,6 +14,7 @@ import { RegressionCalculator } from '@/components/RegressionCalculator';
 import { DesignMatrixTable } from '@/components/DesignMatrixTable';
 import { DesignMatrixData } from '@/types/designMatrix';
 import { AXIOS_INSTANCE } from '@/lib/api-client';
+import { AxiosError } from 'axios';
 
 interface AnalysisMetadata {
   experiment_id: number;
@@ -98,6 +99,49 @@ interface ResponseVariable {
   unit?: string;
 }
 
+/**
+ * Extrai mensagem de erro da resposta da API
+ */
+const extractErrorMessage = (error: unknown): string => {
+  if (error instanceof AxiosError && error.response?.data) {
+    const data = error.response.data;
+    
+    // Se o erro é um objeto com campos
+    if (typeof data === 'object' && data !== null) {
+      // Tenta pegar a mensagem do campo 'error', 'message' ou 'detail'
+      if ('error' in data && typeof data.error === 'string') {
+        return data.error;
+      }
+      if ('message' in data && typeof data.message === 'string') {
+        return data.message;
+      }
+      if ('detail' in data && typeof data.detail === 'string') {
+        return data.detail;
+      }
+      
+      // Se for um objeto com erros de validação de campos
+      const firstKey = Object.keys(data)[0];
+      if (firstKey && Array.isArray(data[firstKey])) {
+        return `${firstKey}: ${data[firstKey][0]}`;
+      }
+      if (firstKey && typeof data[firstKey] === 'string') {
+        return data[firstKey];
+      }
+    }
+    
+    // Se for uma string diretamente
+    if (typeof data === 'string') {
+      return data;
+    }
+  }
+  
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  return 'Erro desconhecido ao carregar análise';
+};
+
 // Função auxiliar para formatar números de forma inteligente
 const formatNumber = (value: number | null, decimals: number = 4): string => {
   if (value === null || value === undefined) return '-';
@@ -149,7 +193,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
         setIsLoading(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar variáveis');
+      setError(extractErrorMessage(err));
       setIsLoading(false);
     }
   };
@@ -165,7 +209,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
 
       setAnalysisData(response.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar análise');
+      setError(extractErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

@@ -91,25 +91,25 @@ export default function ExperimentsPage() {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">🧪</div>
+              <div className="text-2xl sm:text-3xl">🧪</div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Facexp</h1>
-                <p className="text-sm text-muted-foreground font-mono">Design of Experiments</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Facexp</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground font-mono">Design of Experiments</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-foreground">{user?.name}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="text-left sm:text-right flex-1 sm:flex-none min-w-0">
+                <p className="text-sm font-medium text-foreground truncate max-w-[200px] sm:max-w-none">{user?.name}</p>
+                <p className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-none">{user?.email}</p>
               </div>
               <Button
                 onClick={async () => {
                   await logout();
                   router.push('/login');
                 }}
-                className="bg-muted text-foreground hover:bg-muted/80"
+                className="bg-muted text-foreground hover:bg-muted/80 text-sm sm:text-base shrink-0"
               >
                 Sair
               </Button>
@@ -119,21 +119,21 @@ export default function ExperimentsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div className="flex-1">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                 Meus Experimentos
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Gerencie seus experimentos fatoriais e análises estatísticas
               </p>
             </div>
             <Button
               onClick={() => router.push('/experiments/new')}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg text-sm sm:text-base w-full sm:w-auto"
             >
               <span className="text-xl mr-2">+</span>
               Novo Experimento
@@ -177,23 +177,23 @@ export default function ExperimentsPage() {
               >
                 <Card className="hover:shadow-xl transition-all duration-300">
                 <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <span className={`px-2 py-1 rounded text-xs font-mono font-semibold ${experiment.status ? STATUS_COLORS[experiment.status] : ''}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-xs font-mono font-semibold self-start ${experiment.status ? STATUS_COLORS[experiment.status] : ''}`}>
                       {experiment.status ? STATUS_LABELS[experiment.status] : 'N/A'}
                     </span>
                     <span className="text-xs text-muted-foreground font-mono">
                       {formatDate(experiment.updated_at)}
                     </span>
                   </div>
-                  <CardTitle className="text-xl line-clamp-2">
+                  <CardTitle className="text-lg sm:text-xl line-clamp-2">
                     {experiment.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm">
                       <span className="text-muted-foreground">Tipo:</span>
-                      <span className="font-mono text-science-700 font-semibold">
+                      <span className="font-mono text-science-700 font-semibold text-xs sm:text-sm">
                         {experiment.design_type ? DESIGN_TYPE_LABELS[experiment.design_type] : 'N/A'}
                       </span>
                     </div>
@@ -204,9 +204,9 @@ export default function ExperimentsPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-200">
+                  <div className="mt-4 pt-4 border-t border-border">
                     <Button
-                      className="w-full bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      className="w-full bg-muted text-foreground hover:bg-muted/80 text-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/experiments/${experiment.slug}`);

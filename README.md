@@ -45,7 +45,7 @@
 - Python 3.12 ou superior
 - Node.js 18 ou superior
 - Poetry (gerenciador de dependências Python)
-- npm ou yarn
+- yarn
 
 ### Backend
 
@@ -73,13 +73,13 @@ poetry run python manage.py runserver
 cd frontend
 
 # Instale as dependências
-npm install
+yarn install
 
 # Configure as variáveis de ambiente
 cp .env.example .env.local
 
 # Inicie o servidor de desenvolvimento
-npm run dev
+yarn dev
 ```
 
 Acesse:

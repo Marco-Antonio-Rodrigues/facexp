@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -29,10 +29,26 @@ export default function ResponseVariableModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [formData, setFormData] = useState<ResponseVariableFormData>(editData || {
+  const [formData, setFormData] = useState<ResponseVariableFormData>({
     name: '',
     unit: '',
   });
+
+  // Atualiza o formData quando editData mudar
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        name: editData.name,
+        unit: editData.unit || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        unit: '',
+      });
+    }
+    setError('');
+  }, [editData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -128,7 +144,7 @@ export default function ResponseVariableModal({
             </div>
 
             {/* Info Card */}
-            <div className="p-4 bg-muted/50 border border-border rounded-lg">
+            {/* <div className="p-4 bg-muted/50 border border-border rounded-lg">
               <div className="flex items-start gap-3">
                 <span className="text-xl">💡</span>
                 <div className="text-sm text-muted-foreground">
@@ -136,7 +152,7 @@ export default function ResponseVariableModal({
                   <p>Você pode adicionar múltiplas variáveis de resposta para medir diferentes aspectos do seu experimento.</p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Actions */}
             <div className="flex items-center gap-4 pt-4 border-t border-border">

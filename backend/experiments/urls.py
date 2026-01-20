@@ -101,6 +101,11 @@ urlpatterns = [
         name='experiment-runs-bulk-create'
     ),
     path(
+        '<slug:experiment_slug>/runs/bulk_delete/',
+        ExperimentRunViewSet.as_view({'post': 'bulk_delete'}),
+        name='experiment-runs-bulk-delete'
+    ),
+    path(
         '<slug:experiment_slug>/runs/import_from_excel/',
         ExperimentRunViewSet.as_view({'post': 'import_from_excel'}),
         name='experiment-runs-import-from-excel'

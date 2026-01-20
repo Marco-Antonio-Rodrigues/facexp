@@ -48,12 +48,8 @@ class ExperimentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Retorna apenas os experimentos do usuário autenticado.
-        Admins podem ver todos os experimentos.
         """
-        user = self.request.user
-        if user.is_staff or user.is_superuser:
-            return Experiment.objects.all()
-        return Experiment.objects.filter(owner=user)
+        return Experiment.objects.filter(owner=self.request.user)
     
     def get_serializer_class(self):
         """

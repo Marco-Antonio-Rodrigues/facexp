@@ -256,12 +256,12 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex gap-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   onClick={() => router.push('/experiments')}
-                  className="bg-muted text-foreground hover:bg-muted/80"
+                  className="bg-muted text-foreground hover:bg-muted/80 text-xs sm:text-sm"
                 >
                   ← Voltar
                 </Button>
@@ -269,25 +269,27 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                   <>
                     <Button
                       onClick={() => router.push(`/experiments/${slug}/runs`)}
-                      className="bg-blue-600 text-white hover:bg-blue-700"
+                      className="bg-blue-600 text-white hover:bg-blue-700 text-xs sm:text-sm flex-1 sm:flex-none"
                     >
-                      📋 Gerenciar Corridas
+                      <span className="hidden sm:inline">📋 Gerenciar Corridas</span>
+                      <span className="sm:hidden">📋 Corridas</span>
                     </Button>
                     <Button
                       onClick={() => router.push(`/experiments/${slug}/analysis`)}
-                      className="bg-emerald-600 text-white hover:bg-emerald-700"
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 text-xs sm:text-sm flex-1 sm:flex-none"
                     >
-                      📊 Analisar Experimento
+                      <span className="hidden sm:inline">📊 Analisar Experimento</span>
+                      <span className="sm:hidden">📊 Análise</span>
                     </Button>
                   </>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <div className="text-2xl">🧪</div>
-                <h1 className="text-xl font-bold text-foreground">{experiment.title}</h1>
+                <div className="text-xl sm:text-2xl">🧪</div>
+                <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">{experiment.title}</h1>
               </div>
             </div>
-            <div className={`px-3 py-1 rounded-full border font-mono text-xs font-semibold ${STATUS_COLORS[experiment.status ?? StatusEnum.draft]}`}>
+            <div className={`px-3 py-1 rounded-full border font-mono text-xs font-semibold ${STATUS_COLORS[experiment.status ?? StatusEnum.draft]} self-start sm:self-auto`}>
               {STATUS_LABELS[experiment.status ?? StatusEnum.draft]}
             </div>
           </div>
@@ -311,21 +313,21 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Tipo de Design</h3>
-                    <p className="text-foreground font-mono">{DESIGN_TYPE_LABELS[experiment.design_type ?? DesignTypeEnum.full_factorial]}</p>
+                    <p className="text-foreground font-mono text-sm">{DESIGN_TYPE_LABELS[experiment.design_type ?? DesignTypeEnum.full_factorial]}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Status</h3>
-                    <p className="text-foreground font-mono">{STATUS_LABELS[experiment.status ?? StatusEnum.draft]}</p>
+                    <p className="text-foreground font-mono text-sm">{STATUS_LABELS[experiment.status ?? StatusEnum.draft]}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Repetições</h3>
-                    <p className="text-foreground font-mono">
+                    <p className="text-foreground font-mono text-sm">
                       {experiment.replicates || 1} {experiment.replicates === 1 ? 'réplica' : 'réplicas'}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -334,10 +336,10 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Criado em</h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {new Date(experiment.created_at).toLocaleString('pt-BR', {
                         day: '2-digit',
                         month: 'long',
@@ -349,7 +351,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-1">Atualizado em</h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {new Date(experiment.updated_at).toLocaleString('pt-BR', {
                         day: '2-digit',
                         month: 'long',
@@ -366,14 +368,14 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
             {/* Fatores */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">Fatores</CardTitle>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="text-lg sm:text-xl">Fatores</CardTitle>
                   <Button 
                     onClick={() => {
                       setEditingFactor(null);
                       setShowFactorModal(true);
                     }}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm w-full sm:w-auto"
                   >
                     + Adicionar Fator
                   </Button>
@@ -389,15 +391,15 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     {factors.map((factor) => (
                       <div
                         key={factor.id}
-                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
                       >
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-semibold text-foreground">{factor.name}</h4>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                            <h4 className="font-semibold text-foreground text-sm sm:text-base">{factor.name}</h4>
                             <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-mono rounded">
                               {factor.symbol}
                             </span>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                            <span className={`px-2 py-1 text-xs font-semibold rounded whitespace-nowrap ${
                               factor.data_type === DataTypeEnum.quantitative
                                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
                                 : 'bg-purple-500/20 text-purple-400 border border-purple-500/40'
@@ -409,33 +411,33 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                             {factor.data_type === DataTypeEnum.quantitative ? (
                               Array.isArray(factor.levels_config) ? (
                                 (factor.levels_config as number[]).map((level, idx) => (
-                                  <Badge key={idx} variant="quantitative" className="font-mono">
+                                  <Badge key={idx} variant="quantitative" className="font-mono text-xs">
                                     {level}
                                   </Badge>
                                 ))
                               ) : (
                                 <>
-                                  <Badge variant="quantitative" className="font-mono">
+                                  <Badge variant="quantitative" className="font-mono text-xs">
                                     {(factor.levels_config as QuantitativeLevelsConfig)?.low} <span className="text-xs ml-1">(baixo)</span>
                                   </Badge>
-                                  <Badge variant="quantitative" className="font-mono">
+                                  <Badge variant="quantitative" className="font-mono text-xs">
                                     {(factor.levels_config as QuantitativeLevelsConfig)?.center} <span className="text-xs ml-1">(centro)</span>
                                   </Badge>
-                                  <Badge variant="quantitative" className="font-mono">
+                                  <Badge variant="quantitative" className="font-mono text-xs">
                                     {(factor.levels_config as QuantitativeLevelsConfig)?.high} <span className="text-xs ml-1">(alto)</span>
                                   </Badge>
                                 </>
                               )
                             ) : (
                               Array.isArray(factor.levels_config) && (factor.levels_config as CategoricalLevelsConfig).map((level, idx) => (
-                                <Badge key={idx} variant="categorical">
+                                <Badge key={idx} variant="categorical" className="text-xs">
                                   {level}
                                 </Badge>
                               ))
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-end sm:justify-start">
                           <Button
                             onClick={() => {
                               setEditingFactor(factor);
@@ -462,15 +464,15 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
             {/* Variáveis de Resposta */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">Variável de Resposta</CardTitle>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <CardTitle className="text-lg sm:text-xl">Variável de Resposta</CardTitle>
                   {responseVariables.length === 0 && (
                     <Button 
                       onClick={() => {
                         setEditingResponseVar(null);
                         setShowResponseVarModal(true);
                       }}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm w-full sm:w-auto"
                     >
                       + Adicionar Variável
                     </Button>
@@ -488,11 +490,11 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                     {responseVariables.map((responseVar) => (
                       <div
                         key={responseVar.id}
-                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
                       >
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-semibold text-foreground">{responseVar.name}</h4>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                            <h4 className="font-semibold text-foreground text-sm sm:text-base">{responseVar.name}</h4>
                             {responseVar.unit && (
                               <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-mono rounded">
                                 {responseVar.unit}
@@ -500,7 +502,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-end sm:justify-start">
                           <Button
                             onClick={() => {
                               setEditingResponseVar(responseVar);

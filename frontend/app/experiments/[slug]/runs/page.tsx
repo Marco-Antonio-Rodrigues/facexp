@@ -306,27 +306,30 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between mb-4">
             <Button
               onClick={() => router.push(`/experiments/${slug}`)}
-              className="mb-4 bg-muted text-foreground hover:bg-muted/80"
+              className="bg-muted text-foreground hover:bg-muted/80 w-full sm:w-auto"
             >
               ← Voltar ao Experimento
             </Button>
-            <h1 className="text-3xl font-bold text-foreground">Corridas Experimentais</h1>
-            <p className="text-muted-foreground mt-2">
+            {(runs?.length || 0) > 0 && (
+              <Button
+                onClick={handleDeleteAllRuns}
+                className="bg-red-600 text-white hover:bg-red-700 w-full sm:w-auto text-sm sm:text-base"
+              >
+                <span className="hidden sm:inline">🗑️ Deletar Todas as Corridas</span>
+                <span className="sm:hidden">🗑️ Deletar Corridas</span>
+              </Button>
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Corridas Experimentais</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-2">
               {runs?.length || 0} corridas • {runs?.filter(r => r.is_complete).length || 0} completas
             </p>
           </div>
-          {(runs?.length || 0) > 0 && (
-            <Button
-              onClick={handleDeleteAllRuns}
-              className="bg-red-600 text-white hover:bg-red-700"
-            >
-              🗑️ Deletar Todas as Corridas
-            </Button>
-          )}
         </div>
 
         {/* Upload Component */}
@@ -343,29 +346,31 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
         {/* Runs Table */}
         <Card className="shadow-lg">
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex-1">
                 <CardTitle className="text-xl">Matriz Experimental</CardTitle>
                 <p className="text-sm text-muted-foreground mt-2">
                   As corridas estão agrupadas por combinação de fatores. Clique em uma linha para ver todas as réplicas daquela combinação.
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0 w-full sm:w-auto">
                 <Button
                   onClick={expandAll}
                   variant="outline"
                   size="sm"
-                  className="whitespace-nowrap"
+                  className="flex-1 sm:flex-none whitespace-nowrap text-xs sm:text-sm px-3"
                 >
-                  ⬇️ Expandir Todos
+                  <span className="hidden sm:inline">⬇️ Expandir Todos</span>
+                  <span className="sm:hidden">⬇️ Expandir</span>
                 </Button>
                 <Button
                   onClick={collapseAll}
                   variant="outline"
                   size="sm"
-                  className="whitespace-nowrap"
+                  className="flex-1 sm:flex-none whitespace-nowrap text-xs sm:text-sm px-3"
                 >
-                  ⬆️ Retrair Todos
+                  <span className="hidden sm:inline">⬆️ Retrair Todos</span>
+                  <span className="sm:hidden">⬆️ Retrair</span>
                 </Button>
               </div>
             </div>
@@ -636,7 +641,7 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
               <div>
                 <h4 className="font-semibold text-slate-200 mb-2 text-sm">Como Funciona o Agrupamento:</h4>
                 <p className="text-sm text-slate-300 mb-2">
-                  As linhas <span className="bg-blue-100 px-1 py-0.5 rounded font-semibold">azuis</span> representam combinações únicas de fatores.
+                  As linhas <span className="bg-blue-500 px-1 py-0.5 rounded font-semibold">azuis</span> representam combinações únicas de fatores.
                   Clique em uma combinação para expandir e ver todas as réplicas (repetições) daquela condição experimental.
                 </p>
               </div>
