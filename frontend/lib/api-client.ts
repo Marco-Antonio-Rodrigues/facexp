@@ -13,8 +13,17 @@ AXIOS_INSTANCE.interceptors.request.use((config) => {
   // Header padrão para evitar warning do ngrok
   config.headers['ngrok-skip-browser-warning'] = 'true';
   
-  // Se não tiver token e não for uma rota pública, redireciona
-  const publicEndpoints = ['/api/auth/login', '/api/auth/request-code', '/api/auth/confirm-email'];
+  // Lista de endpoints públicos que não precisam de autenticação
+  const publicEndpoints = [
+    '/api/users/login/request-code/',
+    '/api/users/login/verify-code/',
+    '/api/users/user/', // POST para registro
+    '/api/users/user/confirm-email/',
+    '/api/users/user/resend-email-confirmation/',
+    '/api/users/token/', // Login com senha
+    '/api/users/token/refresh/',
+  ];
+  
   const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
   
   if (!token && !isPublicEndpoint && typeof window !== 'undefined') {

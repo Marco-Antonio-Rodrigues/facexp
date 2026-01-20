@@ -621,10 +621,10 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-slate-700">
+              <p className="text-slate-200">
                 Tem certeza que deseja excluir o experimento <strong>{experiment?.title}</strong>?
               </p>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-300">
                 Esta ação não pode ser desfeita. Todos os fatores, variáveis de resposta e 
                 corridas experimentais associadas serão permanentemente removidos.
               </p>
@@ -687,10 +687,10 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-slate-700">
+              <p className="text-slate-200">
                 Tem certeza que deseja excluir este fator?
               </p>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-300">
                 Esta ação não pode ser desfeita e pode afetar as corridas experimentais já geradas.
               </p>
               <div className="flex items-center gap-3 pt-4">
@@ -739,10 +739,10 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-slate-700">
+              <p className="text-slate-200">
                 Tem certeza que deseja excluir esta variável de resposta?
               </p>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-300">
                 Esta ação não pode ser desfeita e todos os dados coletados para esta variável serão perdidos.
               </p>
               <div className="flex items-center gap-3 pt-4">

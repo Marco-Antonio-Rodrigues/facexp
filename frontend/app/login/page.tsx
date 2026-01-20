@@ -23,16 +23,20 @@ export default function LoginPage() {
 
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[LOGIN] handleRequestCode called with email:', email);
     setError('');
     setSuccess('');
     setNeedsEmailConfirmation(false);
     setIsLoading(true);
 
     try {
+      console.log('[LOGIN] Calling requestLoginCode...');
       await requestLoginCode(email);
+      console.log('[LOGIN] Code sent successfully');
       setSuccess('Código enviado para seu e-mail!');
       setStep('code');
     } catch (err) {
+      console.error('[LOGIN] Error requesting code:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erro ao solicitar código';
       
       // Verifica se o erro é sobre e-mail não confirmado
