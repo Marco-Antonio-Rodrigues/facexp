@@ -358,37 +358,37 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="bg-muted/30 p-4 rounded-lg" title="Valor médio dos dados. Soma de todos os valores dividida pela quantidade de observações.">
                     <p className="text-sm text-muted-foreground mb-1">Média</p>
                     <p className="text-2xl font-bold text-foreground">
                       {analysisData.summary.mean.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="bg-muted/30 p-4 rounded-lg" title="Mede o quanto os dados se dispersam em relação à média. Quanto maior, mais espalhados estão os valores.">
                     <p className="text-sm text-muted-foreground mb-1">Desvio Padrão</p>
                     <p className="text-2xl font-bold text-foreground">
                       {analysisData.summary.std.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="bg-muted/30 p-4 rounded-lg" title="Coeficiente de Variação: desvio padrão dividido pela média, em percentual. Indica a variabilidade relativa dos dados. Valores acima de 30% indicam alta variabilidade.">
                     <p className="text-sm text-muted-foreground mb-1">CV (%)</p>
                     <p className="text-2xl font-bold text-foreground">
                       {analysisData.summary.cv?.toFixed(2) ?? 'N/A'}
                     </p>
                   </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="bg-muted/30 p-4 rounded-lg" title="O menor valor observado no conjunto de dados.">
                     <p className="text-sm text-muted-foreground mb-1">Mínimo</p>
                     <p className="text-2xl font-bold text-foreground">
                       {analysisData.summary.min.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="bg-muted/30 p-4 rounded-lg" title="O maior valor observado no conjunto de dados.">
                     <p className="text-sm text-muted-foreground mb-1">Máximo</p>
                     <p className="text-2xl font-bold text-foreground">
                       {analysisData.summary.max.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="bg-muted/30 p-4 rounded-lg" title="Diferença entre o valor máximo e o mínimo. Mostra a faixa de variação total dos dados.">
                     <p className="text-sm text-muted-foreground mb-1">Amplitude</p>
                     <p className="text-2xl font-bold text-foreground">
                       {analysisData.summary.range.toFixed(2)}
