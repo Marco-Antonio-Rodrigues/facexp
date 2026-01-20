@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 
 class ConfigBase:
@@ -9,6 +10,7 @@ class ConfigBase:
     SECRET_KEY = os.getenv("SECRET_KEY")
 
     CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_HEADERS = list(default_headers) + ['ngrok-skip-browser-warning']
 
     ROOT_URLCONF = "core.urls"
 
