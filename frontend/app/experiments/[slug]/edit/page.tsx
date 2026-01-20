@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DesignTypeEnum, StatusEnum } from '@/types';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 const DESIGN_TYPE_OPTIONS = [
   { value: DesignTypeEnum.full_factorial, label: 'Fatorial Completo' },
@@ -83,24 +84,16 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
 
   const checkHasRuns = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/runs/?page_size=1`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/runs/?page_size=1`
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        const hasAnyRuns = Array.isArray(data) 
-          ? data.length > 0 
-          : (data.count !== undefined ? data.count > 0 : (Array.isArray(data.results) ? data.results.length > 0 : false));
-        
-        setHasRuns(hasAnyRuns);
-      }
+      const data = response.data;
+      const hasAnyRuns = Array.isArray(data) 
+        ? data.length > 0 
+        : (data.count !== undefined ? data.count > 0 : (Array.isArray(data.results) ? data.results.length > 0 : false));
+      
+      setHasRuns(hasAnyRuns);
     } catch (err) {
       console.error('Erro ao verificar corridas:', err);
     }
@@ -108,21 +101,11 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
 
   const fetchExperiment = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/`
       );
 
-      if (!response.ok) {
-        throw new Error('Erro ao carregar experimento');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       // Atualiza os valores do formulário
       setValue('title', data.title);
       setValue('description', data.description || '');
@@ -146,23 +129,10 @@ export default function EditExperimentPage({ params }: { params: Promise<{ slug:
     }
 
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        }
+      await AXIOS_INSTANCE.patch(
+        `/api/experiments/${slug}/`,
+        data
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao atualizar experimento');
-      }
 
       router.push(`/experiments/${slug}`);
     } catch (err) {

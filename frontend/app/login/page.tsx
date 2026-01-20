@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import * as authHelpers from '@/lib/auth-helpers';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,17 +52,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/user/resend-email-confirmation/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao reenviar e-mail de confirmação');
-      }
+      await authHelpers.resendConfirmationEmail(email);
       
       setSuccess('E-mail de confirmação reenviado! Verifique sua caixa de entrada.');
       setNeedsEmailConfirmation(false);

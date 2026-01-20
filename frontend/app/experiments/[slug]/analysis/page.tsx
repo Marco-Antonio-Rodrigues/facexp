@@ -13,6 +13,7 @@ import { InteractionPlot } from '@/components/charts/InteractionPlot';
 import { RegressionCalculator } from '@/components/RegressionCalculator';
 import { DesignMatrixTable } from '@/components/DesignMatrixTable';
 import { DesignMatrixData } from '@/types/designMatrix';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 interface AnalysisMetadata {
   experiment_id: number;
@@ -133,21 +134,11 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
 
   const fetchResponseVariables = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/response-variables/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/response-variables/`
       );
 
-      if (!response.ok) {
-        throw new Error('Erro ao carregar variáveis de resposta');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       setResponseVariables(data);
       
       // Seleciona a primeira variável por padrão
@@ -168,23 +159,11 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
     setError('');
     
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/analysis/?response=${encodeURIComponent(responseName)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/analysis/?response=${encodeURIComponent(responseName)}`
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao carregar análise');
-      }
-
-      const data = await response.json();
-      setAnalysisData(data);
+      setAnalysisData(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar análise');
     } finally {

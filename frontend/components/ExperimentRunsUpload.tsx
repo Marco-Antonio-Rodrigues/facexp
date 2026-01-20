@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 interface Factor {
   id: number;
@@ -115,8 +116,8 @@ export default function ExperimentRunsUpload({
 
   const processData = async (data: any[]) => {
     const errors: string[] = [];
-    let successCount = 0;
-    let deletedCount = 0;
+    const successCount = 0;
+    const deletedCount = 0;
 
     try {
       // Validar colunas obrigatórias no cabeçalho
@@ -223,8 +224,6 @@ export default function ExperimentRunsUpload({
           }
         }
       });
-
-      const token = localStorage.getItem('access_token');
       
       // NOVO COMPORTAMENTO: Sempre substituir (replace=true)
       // Importar do Excel criando novos runs (o backend vai deletar os antigos)
@@ -330,39 +329,19 @@ export default function ExperimentRunsUpload({
 
       // Enviar para o backend com replace=true
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/runs/import_from_excel/`,
+        const response = await AXIOS_INSTANCE.post(
+          `/api/experiments/${experimentSlug}/runs/import_from_excel/`,
           {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              replace: true,  // SEMPRE substituir
-              runs: runsToImport
-            })
+            replace: true,  // SEMPRE substituir
+            runs: runsToImport
           }
         );
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          setUploadResult({
-            success: 0,
-            errors: [`❌ Erro ao importar: ${JSON.stringify(errorData)}`]
-          });
-          setIsUploading(false);
-          return;
-        }
-
-        const result = await response.json();
-        successCount = result.created || 0;
-        deletedCount = result.deleted || 0;
-
-        setUploadResult({ 
-          success: successCount, 
+        const data = response.data;
+        setUploadResult({
+          success: data.created || 0, 
           errors: [],
-          deleted: deletedCount,
+          deleted: data.deleted || 0,
           mode: 'create'
         });
         

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { apiClient } from '@/lib/api';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 interface PlateResult {
   message: string;
@@ -56,13 +56,8 @@ export function PlateSearchForm() {
     setResult(null);
     
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        throw new Error('Você precisa estar logado para consultar placas');
-      }
-
-      const data = await apiClient.consumeService('consulta-placa', token);
-      setResult(data as PlateResult);
+      const response = await AXIOS_INSTANCE.post(`/api/services/consulta-placa/consume/`);
+      setResult(response.data as PlateResult);
       
       // Dispara evento para atualizar o saldo no dashboard
       window.dispatchEvent(new Event('balanceUpdated'));

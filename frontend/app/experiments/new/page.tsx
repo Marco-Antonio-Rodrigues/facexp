@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ExperimentCreate, DesignTypeEnum } from '@/types';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 const DESIGN_TYPE_OPTIONS = [
   { value: DesignTypeEnum.full_factorial, label: 'Fatorial Completo' },
@@ -43,23 +44,9 @@ export default function NewExperimentPage() {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/experiments/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await AXIOS_INSTANCE.post('/api/experiments/', formData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao criar experimento');
-      }
-
-      const data = await response.json();
-      router.push(`/experiments/${data.slug}`);
+      router.push(`/experiments/${response.data.slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar experimento');
     } finally {

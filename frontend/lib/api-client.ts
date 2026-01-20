@@ -10,6 +10,9 @@ export const AXIOS_INSTANCE = Axios.create({
 AXIOS_INSTANCE.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
   
+  // Header padrão para evitar warning do ngrok
+  config.headers['ngrok-skip-browser-warning'] = 'true';
+  
   // Se não tiver token e não for uma rota pública, redireciona
   const publicEndpoints = ['/api/auth/login', '/api/auth/request-code', '/api/auth/confirm-email'];
   const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));

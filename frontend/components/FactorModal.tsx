@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DataTypeEnum } from '@/types';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 interface FactorFormData {
   name: string;
@@ -136,71 +137,17 @@ export default function FactorModal({ experimentSlug, designType, isOpen, onClos
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
       const url = editData
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/factors/${editData.id}/`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/factors/`;
+        ? `/api/experiments/${experimentSlug}/factors/${editData.id}/`
+        : `/api/experiments/${experimentSlug}/factors/`;
       
-      const method = editData ? 'PATCH' : 'POST';
+      const method = editData ? 'patch' : 'post';
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await AXIOS_INSTANCE[method](url, formData);
 
-      if (!response.ok) {
-        console.error('❌ Erro HTTP:', response.status, response.statusText);
-        let errorMessage = `Erro ${response.status}: `;
-        
-        // Clona a resposta para poder ler múltiplas vezes se necessário
-        const responseClone = response.clone();
-        
-        try {
-          const errorData = await response.json();
-          console.error('📋 Dados do erro:', errorData);
+      console.log('✅ Fator salvo com sucesso:', response.data);
           
-          if (typeof errorData === 'string') {
-            errorMessage += errorData;
-          } else if (errorData.detail) {
-            errorMessage += errorData.detail;
-          } else if (errorData.message) {
-            errorMessage += errorData.message;
-          } else {
-            // Coleta erros de todos os campos
-            const fieldErrors: string[] = [];
-            for (const [field, errors] of Object.entries(errorData)) {
-              if (Array.isArray(errors)) {
-                fieldErrors.push(`${field}: ${errors.join(', ')}`);
-              } else if (typeof errors === 'string') {
-                fieldErrors.push(`${field}: ${errors}`);
-              }
-            }
-            if (fieldErrors.length > 0) {
-              errorMessage += fieldErrors.join('\n');
-            } else {
-              errorMessage += JSON.stringify(errorData);
-            }
-          }
-        } catch (jsonError) {
-          console.error('⚠️ Erro ao parsear JSON:', jsonError);
-          // Se não conseguir fazer parse do JSON, usa o texto do clone
-          try {
-            const textError = await responseClone.text();
-            console.error('📄 Texto do erro:', textError);
-            errorMessage += textError || 'Falha ao processar resposta do servidor';
-          } catch (textError) {
-            errorMessage += 'Falha ao ler resposta do servidor';
-          }
-        }
-        
-        console.error('💬 Mensagem final:', errorMessage);
-        setError(errorMessage);
-        return;
-      }
+      console.log('✅ Fator salvo com sucesso:', response.data);
 
       onSuccess();
       onClose();

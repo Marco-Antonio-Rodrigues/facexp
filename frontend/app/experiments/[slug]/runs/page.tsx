@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import ExperimentRunsUpload from '@/components/ExperimentRunsUpload';
 import * as XLSX from 'xlsx';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 interface Factor {
   id: number;
@@ -65,28 +66,16 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
   const fetchData = async (experimentSlug: string) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('access_token');
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
       
       const [runsRes, factorsRes, varsRes] = await Promise.all([
-        fetch(`${baseUrl}/api/experiments/${experimentSlug}/runs/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(`${baseUrl}/api/experiments/${experimentSlug}/factors/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(`${baseUrl}/api/experiments/${experimentSlug}/response-variables/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        AXIOS_INSTANCE.get(`/api/experiments/${experimentSlug}/runs/`),
+        AXIOS_INSTANCE.get(`/api/experiments/${experimentSlug}/factors/`),
+        AXIOS_INSTANCE.get(`/api/experiments/${experimentSlug}/response-variables/`)
       ]);
       
-      const runsData = await runsRes.json();
-      const factorsData = await factorsRes.json();
-      const varsData = await varsRes.json();
-      
-      setRuns(runsData);
-      setFactors(factorsData);
-      setResponseVars(varsData);
+      setRuns(runsRes.data);
+      setFactors(factorsRes.data);
+      setResponseVars(varsRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -96,14 +85,10 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
 
   const refetchRuns = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${slug}/runs/`
       );
-      setRuns(await response.json());
+      setRuns(response.data);
     } catch (error) {
       console.error('Error refetching runs:', error);
     }
@@ -125,17 +110,9 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
         response_values[key] = value ? parseFloat(value) : null;
       });
 
-      const token = localStorage.getItem('access_token');
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/${runId}/update_responses/`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ response_values })
-        }
+      await AXIOS_INSTANCE.patch(
+        `/api/experiments/${slug}/runs/${runId}/update_responses/`,
+        { response_values }
       );
 
       await refetchRuns();
@@ -153,18 +130,9 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
     }
 
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/${runId}/`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      await AXIOS_INSTANCE.delete(
+        `/api/experiments/${slug}/runs/${runId}/`
       );
-
-      if (!response.ok) {
-        throw new Error('Erro ao deletar corrida');
-      }
 
       await refetchRuns();
     } catch (error) {
@@ -191,22 +159,9 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
     setIsGeneratingRuns(true);
 
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/generate_runs/`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      await AXIOS_INSTANCE.post(
+        `/api/experiments/${slug}/generate_runs/`
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Erro ao gerar corridas');
-      }
 
       await refetchRuns();
     } catch (err) {
@@ -222,24 +177,11 @@ export default function RunsPage({ params }: { params: Promise<{ slug: string }>
     }
 
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/delete_all_runs/`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.delete(
+        `/api/experiments/${slug}/delete_all_runs/`
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Erro ao deletar corridas');
-      }
-
-      const data = await response.json();
-      alert(`Sucesso! ${data.deleted_count || data.detail} corridas deletadas.`);
+      alert(`Sucesso! ${response.data.deleted_count || response.data.detail} corridas deletadas.`);
       await refetchRuns();
     } catch (error) {
       console.error('Error deleting runs:', error);

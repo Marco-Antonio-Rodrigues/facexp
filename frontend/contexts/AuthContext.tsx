@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiClient } from '@/lib/api';
+import * as authHelpers from '@/lib/auth-helpers';
 
 interface User {
   name: string;
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = localStorage.getItem('access_token');
       if (token) {
-        const userData = await apiClient.getUserProfile(token) as User;
+        const userData = await authHelpers.getUserProfile() as User;
         setUser(userData);
       }
     } catch {
@@ -60,22 +60,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (name: string, email: string) => {
-    await apiClient.register(name, email);
+    await authHelpers.registerUser(name, email);
   };
 
   const requestLoginCode = async (email: string) => {
-    await apiClient.requestLoginCode(email);
+    await authHelpers.requestLoginCode(email);
   };
 
   const login = async (email: string, code: string) => {
-    const { access, refresh } = await apiClient.loginWithCode(email, code);
+    const { access, refresh } = await authHelpers.loginWithCode(email, code);
     localStorage.setItem('access_token', access);
     localStorage.setItem('refresh_token', refresh);
     await loadUser();
   };
 
   const loginWithPassword = async (email: string, password: string) => {
-    const { access, refresh } = await apiClient.loginWithPassword(email, password);
+    const { access, refresh } = await authHelpers.loginWithPassword(email, password);
     localStorage.setItem('access_token', access);
     localStorage.setItem('refresh_token', refresh);
     await loadUser();
@@ -84,9 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
-      const accessToken = localStorage.getItem('access_token');
-      if (refreshToken && accessToken) {
-        await apiClient.logout(refreshToken, accessToken);
+      if (refreshToken) {
+        await authHelpers.logout(refreshToken);
       }
     } catch (error) {
       console.error('Erro ao fazer logout:', error);

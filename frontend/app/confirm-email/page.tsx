@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import * as authHelpers from '@/lib/auth-helpers';
 
 function ConfirmEmailContent() {
   const router = useRouter();
@@ -23,20 +24,10 @@ function ConfirmEmailContent() {
 
     const confirmEmail = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/user/confirm-email/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Erro ao confirmar e-mail');
-        }
+        await authHelpers.confirmEmail(token);
 
         setStatus('success');
-        setMessage(data.message || 'E-mail confirmado com sucesso!');
+        setMessage('E-mail confirmado com sucesso!');
       } catch (err) {
         setStatus('error');
         setMessage(err instanceof Error ? err.message : 'Erro ao confirmar e-mail');

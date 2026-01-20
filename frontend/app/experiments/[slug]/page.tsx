@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ExperimentDetail, StatusEnum, DesignTypeEnum, FactorDetail, DataTypeEnum, ResponseVariableDetail, OptimizationGoalEnum } from '@/types';
 import FactorModal from '@/components/FactorModal';
 import ResponseVariableModal from '@/components/ResponseVariableModal';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 // Tipos auxiliares para levels_config
 type QuantitativeLevelsConfig = { low: number; center: number; high: number };
@@ -70,24 +71,16 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
   const checkHasRuns = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/runs/?page_size=1`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/runs/?page_size=1`
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        const hasAnyRuns = Array.isArray(data) 
-          ? data.length > 0 
-          : (data.count !== undefined ? data.count > 0 : (Array.isArray(data.results) ? data.results.length > 0 : false));
-        
-        setHasRuns(hasAnyRuns);
-      }
+      const data = response.data;
+      const hasAnyRuns = Array.isArray(data) 
+        ? data.length > 0 
+        : (data.count !== undefined ? data.count > 0 : (Array.isArray(data.results) ? data.results.length > 0 : false));
+      
+      setHasRuns(hasAnyRuns);
     } catch (err) {
       console.error('Erro ao verificar corridas:', err);
     }
@@ -95,22 +88,11 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
   const fetchExperiment = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/`
       );
 
-      if (!response.ok) {
-        throw new Error('Erro ao carregar experimento');
-      }
-
-      const data = await response.json();
-      setExperiment(data);
+      setExperiment(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar experimento');
     } finally {
@@ -120,20 +102,12 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
   const fetchFactors = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/factors/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/factors/`
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        setFactors(data.results || data);
-      }
+      const data = response.data;
+      setFactors(data.results || data);
     } catch (err) {
       console.error('Erro ao carregar fatores:', err);
     }
@@ -141,20 +115,9 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
   const handleDeleteFactor = async (factorId: number) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/factors/${factorId}/`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await AXIOS_INSTANCE.delete(
+        `/api/experiments/${slug}/factors/${factorId}/`
       );
-
-      if (!response.ok) {
-        throw new Error('Erro ao excluir fator');
-      }
 
       fetchFactors(slug);
       setDeletingFactorId(null);
@@ -165,20 +128,12 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
   const fetchResponseVariables = async (experimentSlug: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/response-variables/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await AXIOS_INSTANCE.get(
+        `/api/experiments/${experimentSlug}/response-variables/`
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        setResponseVariables(data.results || data);
-      }
+      const data = response.data;
+      setResponseVariables(data.results || data);
     } catch (err) {
       console.error('Erro ao carregar variáveis de resposta:', err);
     }
@@ -186,20 +141,9 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
 
   const handleDeleteResponseVariable = async (responseVarId: number) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/response-variables/${responseVarId}/`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await AXIOS_INSTANCE.delete(
+        `/api/experiments/${slug}/response-variables/${responseVarId}/`
       );
-
-      if (!response.ok) {
-        throw new Error('Erro ao excluir variável de resposta');
-      }
 
       fetchResponseVariables(slug);
       setDeletingResponseVarId(null);
@@ -212,20 +156,7 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
     setIsDeleting(true);
     
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Erro ao excluir experimento');
-      }
+      await AXIOS_INSTANCE.delete(`/api/experiments/${slug}/`);
 
       router.push('/experiments');
     } catch (err) {
@@ -271,43 +202,18 @@ export default function ExperimentDetailPage({ params }: { params: Promise<{ slu
     setIsGeneratingRuns(true);
 
     try {
-      const token = localStorage.getItem('access_token');
-      
       // Se for regeneração, primeiro deleta as runs existentes
       if (forceRegenerate) {
-        const deleteResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/runs/bulk_delete/`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
+        await AXIOS_INSTANCE.post(
+          `/api/experiments/${slug}/runs/bulk_delete/`
         );
-        
-        if (!deleteResponse.ok) {
-          throw new Error('Erro ao deletar corridas existentes');
-        }
       }
       
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${slug}/generate_runs/`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const response = await AXIOS_INSTANCE.post(
+        `/api/experiments/${slug}/generate_runs/`
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Erro ao gerar corridas');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       alert(data.detail);
       
       // Atualiza o estado hasRuns para true

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AXIOS_INSTANCE } from '@/lib/api-client';
 
 interface ResponseVariableFormData {
   name: string;
@@ -51,26 +52,13 @@ export default function ResponseVariableModal({
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
       const url = editData
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/response-variables/${editData.id}/`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/experiments/${experimentSlug}/response-variables/`;
+        ? `/api/experiments/${experimentSlug}/response-variables/${editData.id}/`
+        : `/api/experiments/${experimentSlug}/response-variables/`;
       
-      const method = editData ? 'PATCH' : 'POST';
+      const method = editData ? 'patch' : 'post';
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || errorData.name?.[0] || 'Erro ao salvar variável de resposta');
-      }
+      await AXIOS_INSTANCE[method](url, formData);
 
       onSuccess();
       onClose();
